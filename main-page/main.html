@@ -1,0 +1,336 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Ікорний Погріб — преміальна ікра, дегустації, доставка та вишукані гастрономічні враження."
+  />
+  <title>Ікорний Погріб</title>
+
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="brand" aria-label="Ікорний Погріб — головна сторінка">
+        <img
+          src="../assets/pohrib_logo.png"
+          alt="Силует осетра"
+          class="brand-logo"
+        />
+        <span class="brand-name">Ікорний Погріб</span>
+      </a>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Відкрити меню" />
+      <label for="nav-toggle" class="nav-toggle-label">
+        <span></span>
+        <span></span>
+        <span></span>
+      </label>
+
+      <nav class="main-nav" aria-label="Головна навігація">
+        <a href="#about">Про нас</a>
+        <a href="../catalog/catalog.html">Продукція</a>
+        <a href="#experience">Враження</a>
+        <a href="../degust/degust.html">Дегустація ікри</a>
+        <a href="#contacts">Контакти</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-media" aria-label="Стіл із закусками з червоною ікрою">
+      <video
+        class="hero-video"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        aria-hidden="true"
+      >
+        <source src="../assets/main-hero-video-short.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <div class="hero-content">
+      <p class="eyebrow">Преміальний вибір</p>
+      <h1 id="hero-title">Ікра найвищої якості</h1>
+
+      <div class="origin-list" aria-label="Регіони походження ікри">
+        <span>Аляска</span>
+        <span aria-hidden="true">•</span>
+        <span>Скандинавія</span>
+        <span aria-hidden="true">•</span>
+        <span>Каспій</span>
+        <span aria-hidden="true">•</span>
+        <span>Ісландія</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- About / Assortment -->
+  <section class="section section-dark" id="about" aria-labelledby="about-title">
+    <div class="container about-assortment">
+      <div class="about-assortment-heading">
+        <div class="about-assortment-header">
+          <div class="about-assortment-title">
+            <p class="eyebrow dark">Про нас</p>
+            <h2 id="about-title">Широкий асортимент</h2>
+            <h3>Відчуйте смак вишуканої ікри:</h3>
+          </div>
+
+          <a href="../catalog/catalog.html" class="button button-light">
+            Відкрити каталог
+          </a>
+        </div>
+      </div>
+
+      <div class="about-assortment-body">
+        <ul class="assortment-list">
+          <li>Білуги</li>
+          <li>Щуки</li>
+          <li>Стерляді</li>
+          <li>Лосося</li>
+          <li>Севрюги</li>
+          <li>Горбуші</li>
+          <li>Форелі</li>
+        </ul>
+
+        <div class="assortment-image-grid" aria-label="Добірка продукції"> 
+          <article class="assortment-image-item">
+            <img
+              src="../assets/showcase/red-caviar-toast.png"
+              alt="Канапки з червоною ікрою на дерев'яній дошці"
+            />
+          </article>
+
+          <article class="assortment-image-item">
+            <img
+              src="../assets/showcase/black-caviar.png"
+              alt="Чорна ікра у прозорій місткості"
+            />
+          </article>
+
+          <article class="assortment-image-item">
+            <img
+              src="../assets/showcase/yellow-caviar.png"
+              alt="Дегустаційні ложки з різними видами ікри"
+            />
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <!-- Delivery -->
+    <section class="section delivery-section" aria-labelledby="delivery-title">
+      <div class="container narrow">
+        <h3 id="delivery-title">
+          Безпечно робимо доставку в усі регіони України, країни Європи та
+          Північної Америки, Туреччину, Кіпр та Ізраїль
+        </h3>
+      </div>
+
+      <!-- <div class="delivery-gallery" aria-label="Фото продукції для доставки">
+        <img src="assets/delivery/delivery-1.jpg" alt="Відкрита баночка преміальної чорної ікри" />
+        <img src="assets/delivery/delivery-2.jpg" alt="Чорна ікра у сервірувальній тарілці" />
+        <img src="assets/delivery/delivery-3.jpg" alt="Дві миски з чорною та червоною ікрою" />
+        <img src="assets/delivery/delivery-4.jpg" alt="Канапка з червоною ікрою та келихом білого вина" />
+        <img src="assets/delivery/delivery-5.jpg" alt="Тарілка з млинцями та мисочкою червоної ікри" />
+        <img src="assets/delivery/delivery-6.jpg" alt="Млинці з ікрою" />
+      </div> -->
+    </section>
+
+    <!-- Quality -->
+    <section class="section quality-section" aria-labelledby="quality-title">
+      <div class="container quality-grid">
+        <div class="quality-image-wrap">
+          <img
+            src="../assets/people/founder.jpg"
+            alt="Портрет представника Ікорного Погребу"
+            class="quality-image"
+          />
+        </div>
+
+        <div class="quality-copy">
+          <p class="eyebrow">Досвід</p>
+          <h2 id="quality-title">Якість витримана роками</h2>
+          <h3>Ім'я Прізвище</h3>
+
+          <p>
+            Протягом 9 років ми доставляємо товар найвищої якості з Норвегії,
+            США, Канади, Ісландії та Японії. За цей час бізнес витримав
+            епідемію COVID та повномасштабне вторгнення. Експертність
+            доведена сотнями задоволених клієнтів з усього світу.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section class="section section-light" id="experience" aria-labelledby="experience-title">
+      <div class="container narrow center">
+        <p class="eyebrow dark">Враження</p>
+        <h2 id="experience-title">
+          Розділіть щасливі моменти з продуктами від нашого погребу
+        </h2>
+      </div>
+
+      <div class="experience-grid">
+        <img src="../assets/experience/experience-1.jpg" alt="Святковий стіл з ікрою" />
+        <img src="../assets/experience/experience-2.jpg" alt="Закуска з ікрою крупним планом" />
+        <img src="../assets/experience/experience-3.jpg" alt="Сервірування для дегустації ікри" />
+        <img src="../assets/experience/experience-4.jpg" alt="Баночки з різними видами ікри" />
+        <img src="../assets/experience/experience-5.jpg" alt="Гастрономічна подача ікри" />
+        <img src="../assets/experience/experience-6.jpg" alt="Гастрономічна подача ікри" />
+      </div>
+    </section>
+
+    <!-- Booking CTA -->
+    <section class="booking-section" id="degust" aria-labelledby="booking-title">
+      <div class="container booking-inner">
+        <img
+          src="../assets/logo-sturgeon-white.png"
+          alt=""
+          class="booking-logo"
+          aria-hidden="true"
+        />
+
+        <div>
+          <p class="eyebrow">Дегустація</p>
+          <h2 id="booking-title">Запис на дегустації ікри</h2>
+        </div>
+
+        <a href="../degust/degust.html" class="button button-light">Записатися</a>
+      </div>
+    </section>
+  </main>
+
+  <section class="section map-section" id="location" aria-labelledby="location-title">
+  <div class="container">
+    <div class="map-header center">
+      <p class="eyebrow">Локація</p>
+      <h2 id="location-title">Завітайте до нас</h2>
+      <p>
+        Велика Васильківська 128, Київ
+      </p>
+    </div>
+
+    <div class="map-frame" aria-label="Google Maps: 128 Velyka Vasylkivska St, Kyiv City">
+      <iframe
+        title="Google Maps — 128 Velyka Vasylkivska St, Kyiv City"
+        src="https://www.google.com/maps?q=128%20Velyka%20Vasylkivska%20St%2C%20Kyiv%20City&output=embed"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </div>
+</section>
+
+  <!-- Footer -->
+  <footer class="site-footer" id="contacts">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <img
+          src="../assets/pohrib_logo.png"
+          alt="Силует осетра"
+          class="footer-logo"
+        />
+        <p class="footer-title">
+          Ікорний<br />
+          Погріб
+        </p>
+
+        <nav class="footer-nav" aria-label="Навігація у футері">
+          <a href="#about">Про нас</a>
+          <a href="#booking">Дегустація</a>
+          <a href="#contacts">Контакти</a>
+        </nav>
+      </div>
+
+      <div class="footer-column">
+        <h2>Контакти</h2>
+        <p><a href="tel:+380123456789">123-456-7890</a></p>
+        <p><a href="mailto:info@mysite.com">info@mysite.com</a></p>
+
+        <h3>Наші мережі</h3>
+          <div class="social-links">
+            <a href="#" aria-label="Facebook">
+              <svg
+                class="social-links__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M14.2 8.1V6.6c0-.7.2-1.1 1.1-1.1h1.4V3.1c-.7-.1-1.5-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v1.3H8.4v2.7h2.4V21h3.4V10.8h2.3l.4-2.7h-2.7Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </a>
+
+            <a href="https://www.instagram.com/red.black.caviar?igsh=MWU3NjU0Y293MWt1dA%3D%3D" aria-label="Instagram">
+              <svg
+                class="social-links__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M7.8 3h8.4A4.8 4.8 0 0 1 21 7.8v8.4a4.8 4.8 0 0 1-4.8 4.8H7.8A4.8 4.8 0 0 1 3 16.2V7.8A4.8 4.8 0 0 1 7.8 3Zm0 2A2.8 2.8 0 0 0 5 7.8v8.4A2.8 2.8 0 0 0 7.8 19h8.4a2.8 2.8 0 0 0 2.8-2.8V7.8A2.8 2.8 0 0 0 16.2 5H7.8Zm4.2 3.4A3.6 3.6 0 1 1 8.4 12 3.6 3.6 0 0 1 12 8.4Zm0 2A1.6 1.6 0 1 0 13.6 12 1.6 1.6 0 0 0 12 10.4Zm4-3.1a.9.9 0 1 1-.9.9.9.9 0 0 1 .9-.9Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </a>
+          </div>
+      </div>
+
+      <div class="footer-column footer-newsletter">
+        <h2>Будьте в курсі всіх особливих подій у нашому закладі</h2>
+
+        <form class="newsletter-form" action="#" method="post">
+          <label for="email">Пошта*</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="your@email.com"
+            required
+          />
+
+          <label class="checkbox-label">
+            <input type="checkbox" name="subscribe-consent" />
+            <span>Я хочу отримати новини про можливі акції, знижки та події</span>
+          </label>
+
+          <button type="submit" class="button button-outline">Підписатись</button>
+        </form>
+      </div>
+
+      <div class="footer-column">
+        <h2>Розклад роботи</h2>
+        <p>Пн - Пт: 8:00 - 21:00</p>
+        <p>Сб - Нд: 9:00 - 19:00</p>
+
+        <address>
+          128, вул. Велика Васильківська<br />
+          Київ, Україна, 01103
+        </address>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2035 by Ikornyi Pohrib. Static HTML/CSS recreation.</p>
+    </div>
+  </footer>
+</body>
+</html>

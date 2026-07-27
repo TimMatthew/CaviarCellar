@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="Каталог добірної чорної та червоної ікри з різних куточків світу."
+  />
+
+  <title>Каталог ікри</title>
+
+  <!-- Shared website styles: header, footer, typography, buttons and responsive navigation -->
+  <link rel="stylesheet" href="../main-page/main.css" />
+
+  <!-- Styles specific to the catalog page -->
+  <link rel="stylesheet" href="../catalog/catalog.css" />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../main-page/main.html" class="brand" aria-label="Ікорний Погріб — головна сторінка">
+        <img
+          src="../assets/pohrib_logo.png"
+          alt="Силует осетра"
+          class="brand-logo"
+        />
+        <span class="brand-name">Ікорний Погріб</span>
+      </a>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Відкрити меню" />
+      <label for="nav-toggle" class="nav-toggle-label">
+        <span></span>
+        <span></span>
+        <span></span>
+      </label>
+
+      <nav class="main-nav" aria-label="Головна навігація">
+        <a href="../main-page/main.html">Головна</a>
+        <a href="../degust/degust.html">Дегустація ікри</a>
+        <a href="#contacts">Контакти</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="catalog-page">
+    <section
+      class="catalog-hero"
+      aria-labelledby="catalog-title"
+    >
+      <div class="container catalog-hero__inner">
+        <p class="catalog-hero__eyebrow">
+          Каталог
+        </p>
+
+        <h1
+          class="catalog-hero__title"
+          id="catalog-title"
+        >
+          Добірна ікра з
+          <br class="catalog-hero__line-break" />
+          нашого погребу
+        </h1>
+
+        <p class="catalog-hero__description">
+          На поличках тільки преміальні продуктів
+          <br class="catalog-hero__line-break" />
+          із різних куточків світу
+        </p>
+      </div>
+    </section>
+
+    <section
+      class="catalog-section"
+      aria-labelledby="catalog-products-title"
+    >
+      <div class="container">
+        <h2
+          class="visually-hidden"
+          id="catalog-products-title"
+        >
+          Продукція в каталозі
+        </h2>
+
+        <!--
+          The search field is currently visual only.
+          It does not submit, filter, or modify the product list.
+        -->
+        <div
+          class="catalog-search"
+          role="search"
+        >
+          <label
+            class="visually-hidden"
+            for="product-search"
+          >
+            Пошук продукції
+          </label>
+
+          <div class="catalog-search__field">
+            <span
+              class="catalog-search__icon"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                focusable="false"
+              >
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="7"
+                ></circle>
+
+                <path d="m20 20-4-4"></path>
+              </svg>
+            </span>
+
+            <input
+              class="catalog-search__input"
+              id="product-search"
+              name="product-search"
+              type="search"
+              placeholder="Пошук продукції"
+              autocomplete="off"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="catalog-filter-toggle"
+            aria-label="Фільтри"
+            aria-expanded="false"
+            aria-controls="filter-sidebar"
+          >
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+              <path d="M3 5h18M6 12h12M10 19h4"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="products-grid">
+          <!-- Product cards are rendered from products.json by catalog.js -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" id="contacts">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <img
+          src="../assets/pohrib_logo.png"
+          alt="Силует осетра"
+          class="footer-logo"
+        />
+        <p class="footer-title">
+          Ікорний<br />
+          Погріб
+        </p>
+
+        <nav class="footer-nav" aria-label="Навігація у футері">
+          <a href="../main-page/main.html#about">Про нас</a>
+          <a href="../main-page/main.html#booking">Дегустація</a>
+          <a href="#contacts">Контакти</a>
+        </nav>
+      </div>
+
+      <div class="footer-column">
+        <h2>Контакти</h2>
+        <p><a href="tel:+380123456789">123-456-7890</a></p>
+        <p><a href="mailto:info@mysite.com">info@mysite.com</a></p>
+
+        <h3>Наші мережі</h3>
+          <div class="social-links">
+            <a href="#" aria-label="Facebook">
+              <svg
+                class="social-links__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M14.2 8.1V6.6c0-.7.2-1.1 1.1-1.1h1.4V3.1c-.7-.1-1.5-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v1.3H8.4v2.7h2.4V21h3.4V10.8h2.3l.4-2.7h-2.7Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </a>
+
+            <a href="https://www.instagram.com/red.black.caviar?igsh=MWU3NjU0Y293MWt1dA%3D%3D" aria-label="Instagram">
+              <svg
+                class="social-links__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M7.8 3h8.4A4.8 4.8 0 0 1 21 7.8v8.4a4.8 4.8 0 0 1-4.8 4.8H7.8A4.8 4.8 0 0 1 3 16.2V7.8A4.8 4.8 0 0 1 7.8 3Zm0 2A2.8 2.8 0 0 0 5 7.8v8.4A2.8 2.8 0 0 0 7.8 19h8.4a2.8 2.8 0 0 0 2.8-2.8V7.8A2.8 2.8 0 0 0 16.2 5H7.8Zm4.2 3.4A3.6 3.6 0 1 1 8.4 12 3.6 3.6 0 0 1 12 8.4Zm0 2A1.6 1.6 0 1 0 13.6 12 1.6 1.6 0 0 0 12 10.4Zm4-3.1a.9.9 0 1 1-.9.9.9.9 0 0 1 .9-.9Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </a>
+          </div>
+      </div>
+
+      <div class="footer-column footer-newsletter">
+        <h2>Будьте в курсі всіх особливих подій у нашому закладі</h2>
+
+        <form class="newsletter-form" action="#" method="post">
+          <label for="email">Пошта*</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="your@email.com"
+            required
+          />
+
+          <label class="checkbox-label">
+            <input type="checkbox" name="subscribe-consent" />
+            <span>Я хочу отримати новини про можливі акції, знижки та події</span>
+          </label>
+
+          <button type="submit" class="button button-outline">Підписатись</button>
+        </form>
+      </div>
+
+      <div class="footer-column">
+        <h2>Розклад роботи</h2>
+        <p>Пн - Пт: 8:00 - 21:00</p>
+        <p>Сб - Нд: 9:00 - 19:00</p>
+
+        <address>
+          128, вул. Велика Васильківська<br />
+          Київ, Україна, 01103
+        </address>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2035 by Ikornyi Pohrib. Static HTML/CSS recreation.</p>
+    </div>
+  </footer>
+  <!-- Product data (defines window.PRODUCTS) must load before catalog.js -->
+  <script src="products.js"></script>
+  <!-- Catalog rendering + order modal -->
+  <script src="catalog.js"></script>
+</body>
+</html>

@@ -1,0 +1,878 @@
+/*
+  Header, footer, typography, buttons and responsive navigation are inherited
+  from ../main-page/main.css. This file contains only degustation-page
+  (table reservation) styling, following the same patterns as catalog.css.
+*/
+
+/* =========================================================
+   1. Tokens (shared with the rest of the site)
+   ========================================================= */
+
+/* Cyrillic/Ukrainian-compatible fonts only */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;600;700&display=swap");
+
+:root {
+  --font-body: "Noto Sans", "Roboto", "Arial", sans-serif;
+  --font-heading: "Noto Serif", "Georgia", "Times New Roman", serif;
+
+  --color-black: #080705;
+  --color-charcoal: #14110d;
+  --color-brown: #2a1d13;
+  --color-cream: #f5efe4;
+  --color-warm-white: #fffaf1;
+  --color-gold: #c8a45d;
+  --color-muted-gold: #8d7240;
+  --color-muted-text: #b9ac96;
+  --color-dark-text: #22180f;
+  --color-border: rgba(200, 164, 93, 0.32);
+
+  --container: 1180px;
+  --section-padding: clamp(4rem, 7vw, 7rem);
+  --radius-soft: 22px;
+  --transition: 220ms ease;
+}
+
+.degustation-page {
+  --catalog-background: #f3f0e8;
+  --catalog-surface: #fffdf8;
+  --catalog-text: #181815;
+  --catalog-muted: #68645c;
+  --catalog-accent: #8a6a2d;
+  --catalog-accent-dark: #604716;
+  --catalog-border: rgba(24, 24, 21, 0.16);
+  --catalog-shadow: 0 18px 42px rgba(30, 25, 16, 0.08);
+  --catalog-focus: 0 0 0 4px rgba(138, 106, 45, 0.2);
+
+  min-width: 0;
+  overflow: clip;
+  color: var(--catalog-text);
+  /* Original black → gold brand gradient */
+  background:
+    linear-gradient(
+      165deg,
+      #080705 0%,
+      #14110d 28%,
+      #2a1d13 54%,
+      #6b521f 80%,
+      #c8a45d 100%
+    );
+}
+
+.degustation-page *,
+.degustation-page *::before,
+.degustation-page *::after {
+  box-sizing: border-box;
+}
+
+.degustation-page .container {
+  width: min(100% - 64px, 1440px);
+  margin-inline: auto;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+}
+
+
+/* =========================================================
+   2. Hero
+   ========================================================= */
+.degustation-hero {
+  position: relative;
+  padding-block:
+    clamp(64px, 8vw, 116px)
+    clamp(44px, 6vw, 76px);
+  border-bottom: 1px solid rgba(200, 164, 93, 0.22);
+
+  /* Left-side black scrim over the photo: solid near the text,
+     fading out toward the image. Photo stays pinned right at its
+     natural ratio; #080705 fills whatever it doesn't cover. */
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8, 7, 5, 0.96) 0%,
+      rgba(8, 7, 5, 0.88) 26%,
+      rgba(8, 7, 5, 0.55) 42%,
+      rgba(8, 7, 5, 0.18) 58%,
+      rgba(8, 7, 5, 0) 75%
+    ),
+    url('../assets/degust/hero-layouts/layout-posterized-long-1.png') center / cover no-repeat;
+    /* url('../assets/degust/hero-layouts/layout-1-image-2.png') center / cover no-repeat */
+    /* #080705; */
+}
+
+/* The black→gold trapezoid over the photo */
+/* .degustation-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    165deg,
+    #080705 0%,
+    #14110d 28%,
+    #2a1d13 54%,
+    #6b521f 80%,
+    #c8a45d 100%
+  );
+  top edge ends at 33%, bottom edge at 47% → right-leaning diagonal
+  clip-path: polygon(0 0, 30% 0, 50% 100%, 0 101%);
+  pointer-events: none;
+} */
+
+/* Text must sit above the pseudo-element */
+.degustation-hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin-left: clamp(0rem, 5vw, 5rem);
+  margin-right: auto;
+  text-align: left;
+}
+
+.degustation-hero__eyebrow {
+  margin: 0 0 16px;
+  color: var(--color-gold);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.degustation-hero__title {
+  max-width: 850px;
+  margin: 0;
+  color: var(--color-warm-white);
+  font-family: var(--font-heading);
+  font-size: clamp(2.15rem, 4.5vw, 4.8rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: 0.015em;
+  text-align: left;
+  text-transform: none;
+  text-wrap: initial;
+}
+
+.degustation-hero__description {
+  max-width: 850px;
+  margin: 24px 0 0;
+  color: var(--color-muted-text);
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  line-height: 1.7;
+  text-align: left;
+  text-wrap: initial;
+}
+
+
+/* =========================================================
+   3. Reservation panel (dark textured section, light card)
+   ========================================================= */
+
+.reservation {
+  position: relative;
+  padding-block: clamp(56px, 7vw, 104px);
+  background: url('../assets/degust/bg.png');
+}
+
+
+/* =========================================================
+   3b. Availability calendar (sketch: month bar with arrows,
+   7-column grid of day circles — grey = fully booked,
+   green = at least one free session)
+   ========================================================= */
+
+.calendar {
+  width: min(100%, 640px);
+  margin-inline: auto;
+}
+
+.calendar__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(14px, 3vw, 28px);
+  margin-bottom: clamp(24px, 4vw, 40px);
+}
+
+.calendar__month {
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  padding: 10px 16px;
+  border-radius: 4px;
+  background-color: var(--color-gold);
+  color: #2f2f2f;
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.calendar__nav {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-gold);
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, opacity 160ms ease;
+}
+
+.calendar__nav svg {
+  width: 30px;
+  height: 30px;
+}
+
+.calendar__nav:hover {
+  color: var(--color-gold);
+  background: rgba(255, 250, 241, 0.171);
+}
+
+.calendar__nav:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(200, 164, 93, 0.5);
+}
+
+.calendar__nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+.calendar__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-items: center;
+  gap: clamp(10px, 2.4vw, 22px) clamp(6px, 1.6vw, 14px);
+}
+
+.calendar__day {
+  display: grid;
+  place-items: center;
+  width: clamp(40px, 8vw, 56px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.calendar__day--empty {
+  visibility: hidden;
+}
+
+/* Fully booked (or past) day */
+.calendar__day--busy {
+  background: var(--color-charcoal);
+  color: var(--color-muted-text);
+  border: 1px solid var(--color-border);
+  cursor: default;
+}
+
+/* Day with at least one free session */
+.calendar__day--free {
+  background: var(--color-gold);
+  color: var(--color-charcoal);
+  cursor: pointer;
+}
+
+.calendar__day--free:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+.calendar__day--free:focus-visible {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(200, 164, 93, 0.4);
+}
+
+/* Chosen day: gold ring, brand accent */
+.calendar__day.is-selected {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(200, 164, 93, 0.35);
+}
+
+.calendar__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 26px;
+    margin: clamp(20px, 3vw, 30px) 0 0;
+    color: var(--color-muted-text);
+    /* background: #18181566;
+    padding-block: 5px;
+    margin-inline: 8vw;
+    border-radius: 10px; */
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+}
+
+.calendar__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar__legend-item::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.calendar__legend-item--free::before {
+  background: var(--color-gold);
+}
+
+.calendar__legend-item--busy::before {
+  background: var(--color-charcoal);
+}
+
+
+/* =========================================================
+   4. Reservation card + form
+   ========================================================= */
+
+.reservation-card {
+  width: min(100%, 760px);
+  margin-inline: auto;
+  margin-top: clamp(32px, 5vw, 56px);
+  padding: clamp(24px, 3.5vw, 44px);
+  border: 1px solid var(--catalog-border);
+  border-radius: 16px;
+  background: var(--color-warm-white);
+  box-shadow: var(--catalog-shadow);
+  animation: reservation-card-in 260ms ease;
+}
+
+.reservation-card[hidden] {
+  display: none;
+}
+
+@keyframes reservation-card-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Selected date shown at the top of the card */
+.reservation-card__date {
+  margin: 0 0 clamp(16px, 2.4vw, 24px);
+  color: var(--color-dark-text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Form is a vertical stack: guests, time grid, client info */
+.reservation-form__grid {
+  display: grid;
+  gap: clamp(18px, 2.6vw, 30px);
+}
+
+/* Each field stacks its label above the control;
+   .reservation-field--full simply spans the card (single column) */
+.reservation-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.reservation-field__label {
+  margin: 0;
+  color: var(--color-dark-text);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.reservation-field__control {
+  position: relative;
+}
+
+.reservation-field__input {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px;
+  border: 1px solid var(--catalog-border);
+  border-radius: 2px;
+  outline: none;
+  color: var(--catalog-text);
+  background: var(--catalog-surface);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.4;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.reservation-field__input:focus-visible {
+  border-color: var(--catalog-accent);
+  box-shadow: var(--catalog-focus);
+}
+
+/* Custom caret for the <select> fields */
+select.reservation-field__input {
+  padding-right: 44px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a6a2d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+/* ---- Time slots (radio grid, 2 per row) ---- */
+.reservation-time {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.reservation-time__label {
+  display: block;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.reservation-time__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  /* 33 slots is a long list — cap the height and let it scroll */
+  max-height: 268px;
+  padding-right: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.time-slot {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+/* Visually hide the native radio but keep it focusable/accessible */
+.time-slot input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.time-slot__text {
+  display: block;
+  padding: 12px 8px;
+  border: 1px solid var(--catalog-border);
+  border-radius: 2px;
+  color: var(--catalog-text);
+  background: var(--catalog-surface);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.time-slot__text:hover {
+  border-color: var(--catalog-accent);
+  background: rgba(138, 106, 45, 0.08);
+}
+
+.time-slot input:checked + .time-slot__text,
+.time-slot.is-selected .time-slot__text {
+  color: var(--color-warm-white);
+  border-color: var(--catalog-accent-dark);
+  background: var(--catalog-accent-dark);
+}
+
+.time-slot input:focus-visible + .time-slot__text {
+  border-color: var(--catalog-accent);
+  box-shadow: var(--catalog-focus);
+}
+
+/* CLIENT-INFO: 2×2 grid — label column (left) + input column (right),
+   row 1 = name, row 2 = phone */
+.client-info {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: repeat(2, auto);
+  align-items: center;
+  gap: clamp(14px, 2vw, 20px) clamp(12px, 2vw, 20px);
+}
+
+.client-info .reservation-field__label {
+  white-space: nowrap;
+}
+
+.client-info .reservation-field__input {
+  width: 100%;
+}
+
+.client-info .reservation-field__input::placeholder {
+  color: var(--catalog-muted);
+  opacity: 0.75;
+}
+
+/* Phone group: country-code select + number input joined as one control */
+.phone-input {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+}
+
+.phone-input__code {
+  width: auto;
+  min-width: 108px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0; /* the shared edge belongs to the number input */
+  padding-right: 34px;
+  background-position: right 12px center;
+}
+
+.phone-input__number {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Keep the focused half's ring on top of its neighbour */
+.phone-input .reservation-field__input:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+/* Expected-length hint sits in the input column, tight under the group */
+.client-info .phone-input__hint {
+  grid-column: 2;
+  margin: -6px 0 0;
+  color: var(--catalog-muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* Wrong number length: hint and input borrow an error tint */
+.phone-input__hint.is-error {
+  color: #b0483f;
+  font-weight: 600;
+}
+
+.reservation-field__input.is-error {
+  border-color: #b0483f;
+  box-shadow: 0 0 0 4px rgba(176, 72, 63, 0.16);
+}
+
+.reservation-form__note {
+  margin: 20px 0 0;
+  color: var(--catalog-muted);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.reservation-form__submit {
+  display: block;
+  width: fit-content;
+  margin-top: clamp(20px, 2.5vw, 28px);
+  margin-inline: auto;
+  /* At rest: plain gold, inherited from .button-light */
+}
+
+/* On hover a single white stripe sweeps across, left → right, once.
+   The gradient is declared here (not on the base rule) because
+   .button-light:hover in main.css uses the `background` shorthand,
+   which would otherwise reset background-image to none. */
+.reservation-form__submit:hover,
+.reservation-form__submit:focus-visible {
+  background: var(--color-gold)
+    linear-gradient(
+      100deg,
+      var(--color-gold) 0%,
+      var(--color-gold) 42%,
+      var(--color-warm-white) 50%,
+      var(--color-gold) 58%,
+      var(--color-gold) 100%
+    );
+  background-size: 250% 100%;
+  /* End state of the sweep: stripe fully off-screen → plain gold */
+  background-position: 0% 50%;
+  animation: reservation-submit-sweep 700ms ease-out forwards;
+}
+
+/* background-position 100% shows the image's right gold edge;
+   decreasing it slides the stripe rightward through the button. */
+@keyframes reservation-submit-sweep {
+  from { background-position: 100% 50%; }
+  to   { background-position: 0% 50%; }
+}
+
+
+/* =========================================================
+   5. Responsive
+   ========================================================= */
+
+@media (max-width: 899px) {
+  .degustation-page .container {
+    width: min(100% - 40px, 1440px);
+  }
+}
+
+@media (max-width: 599px) {
+  .degustation-page .container {
+    width: min(100% - 32px, 1440px);
+  }
+
+  .degustation-hero {
+    padding-block: 52px 42px;
+  }
+
+  .reservation {
+    padding-block: 40px 56px;
+  }
+
+  /* Calendar: tighter circles and spacing */
+  .calendar__day {
+    width: clamp(36px, 11vw, 44px);
+    font-size: 0.85rem;
+  }
+
+  .calendar__days {
+    gap: 10px 6px;
+  }
+
+  .calendar__month {
+    letter-spacing: 0.12em;
+  }
+
+  .reservation-time__grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 240px;
+  }
+
+  /* Client info: label stacks above its input */
+  .client-info {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .client-info .reservation-field__input {
+    margin-bottom: 8px;
+  }
+
+  /* Inside the phone group the halves stay joined — the group
+     itself carries the spacing instead */
+  .client-info .phone-input .reservation-field__input {
+    margin-bottom: 0;
+  }
+
+  .client-info .phone-input {
+    margin-bottom: 8px;
+  }
+
+  .client-info .phone-input__hint {
+    grid-column: auto;
+    margin-top: -8px;
+  }
+
+  .reservation-field__input {
+    min-height: 54px;
+  }
+}
+
+@media (max-width: 379px) {
+  .degustation-page .container {
+    width: min(100% - 24px, 1440px);
+  }
+
+  .reservation-form__submit {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   6. Confirmation dialog
+   (self-contained; mirrors catalog's .order-popover pattern)
+   ========================================================= */
+
+.reservation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 7, 5, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: reservation-overlay-in 160ms ease;
+}
+
+.reservation-overlay[hidden] {
+  display: none;
+}
+
+@keyframes reservation-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.reservation-modal-open {
+  overflow: hidden;
+}
+
+.reservation-popover {
+  position: relative;
+  width: min(360px, 100%);
+  padding: 26px 24px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #181815;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-body);
+  color: var(--color-muted-text);
+  text-align: center;
+  animation: reservation-popover-in 160ms ease;
+}
+
+@keyframes reservation-popover-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.reservation-popover__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-muted-text);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.reservation-popover__close:hover {
+  color: var(--color-warm-white);
+  background: rgba(255, 250, 241, 0.08);
+}
+
+.reservation-popover__close:focus-visible {
+  outline: none;
+  box-shadow: var(--catalog-focus);
+}
+
+.reservation-popover__title {
+  margin: 4px 20px 12px;
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-cream);
+}
+
+.reservation-popover__summary {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-gold);
+}
+
+/* One datum per line, stacked vertically */
+.reservation-summary__line {
+  display: block;
+}
+
+.reservation-popover__done {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-muted-text);
+}
+
+
+/* =========================================================
+   7. Reduced motion
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .reservation-field__input,
+  .reservation-popover__close {
+    transition: none;
+  }
+
+  .reservation-overlay,
+  .reservation-popover,
+  .reservation-card {
+    animation: none;
+  }
+
+  .calendar__day--free:hover {
+    transform: none;
+  }
+
+  /* Static warm-white hover instead of the shimmer loop */
+  .reservation-form__submit:hover,
+  .reservation-form__submit:focus-visible {
+    background: var(--color-warm-white);
+    animation: none;
+  }
+}
