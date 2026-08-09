@@ -84,4 +84,17 @@ export const caviarRepo = {
     );
     return rowCount > 0;
   },
+
+    // Atomically reserve stock: decrement only if enough is on hand. The
+  // `amount >= $2` guard makes the check-and-decrement a single race-free step.
+  // Returns the updated row, or null if there wasn't enough stock.
+  async decrementStock(caviarId, qty, exec = pool) {
+    const { rows } = await exec.query(
+      `UPDATE caviar SET amount = amount - $2
+        WHERE caviar_id = $1 AND amount >= $2
+        RETURNING caviar_id, amount`,
+      [caviarId, qty]
+    );
+    return rows[0] ?? null;
+  },
 };

@@ -1,5 +1,5 @@
-import { caviarService } from "../../services/domain/caviar.service.js";
-import { toCaviarDto, toCaviarDtoList } from "../dto/caviar.dto.js";
+import { caviarService } from "../../services/domain/caviar-service.js";
+import { toCaviarDto, toCaviarDtoList } from "../dto/caviar-dto.js";
 
 // Thin HTTP layer: read the (already validated) request, call one service
 // method, map the result to a DTO, send. No business logic, no SQL. Errors are

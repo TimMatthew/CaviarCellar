@@ -6,7 +6,7 @@ import { config } from "./config/index.js";
 import { router } from "./http/routes.js";
 import { errorHandler } from "./http/middleware/errorHandler.js";
 import { healthcheck } from "./db/pool.js";
-import { asyncHandler } from "./lib/asyncHandler.js";
+import { asyncHandler } from "./http/middleware/asyncHandler.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
