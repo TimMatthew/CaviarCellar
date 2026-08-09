@@ -2,8 +2,20 @@ import argon2 from "argon2";
 import { adminRepo } from "../../reps/admin-repo.js";
 import { signToken } from "../../lib/token.js";
 import { UnauthorizedError } from "../../domain/errors.js";
+import { adminService } from "../../services/domain/admin-service.js";
 
 export const authController = {
+  async register(req, res) {
+    const admin = await adminService.register(req.body);
+    res.status(201).json({
+      admin: {
+        id: Number(admin.prof_id),
+        username: admin.username,
+        name: admin.name_t,
+      },
+    });
+  },
+
   // Admin login: verify the submitted password against the stored argon2 hash,
   // then issue a bearer token. The same generic message for unknown user and
   // wrong password avoids leaking which admins exist.

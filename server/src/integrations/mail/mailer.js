@@ -20,16 +20,21 @@ function getTransporter() {
   return transporter;
 }
 
-export async function sendMail({ to, subject, text }) {
+export async function sendMail({ to, subject, text, throwOnError = false }) {
   const t = getTransporter();
   if (!t || !to) {
-    logger.warn({ to, subject }, "email skipped (SMTP not configured or no recipient)");
-    return;
+    const error = new Error("SMTP is not configured or recipient is missing");
+    logger.warn({ to, subject }, error.message);
+    if (throwOnError) throw error;
+    return false;
   }
   try {
     await t.sendMail({ from: config.mail.from, to, subject, text });
     logger.info({ to, subject }, "email sent");
+    return true;
   } catch (err) {
     logger.error({ err, to, subject }, "email send failed");
+    if (throwOnError) throw err;
+    return false;
   }
 }

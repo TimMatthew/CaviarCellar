@@ -2,6 +2,7 @@ import { createApp } from "./app.js";
 import { config } from "./config/index.js";
 import { logger } from "./lib/logger.js";
 import { healthcheck, closePool } from "./db/pool.js";
+import { scheduler } from "./jobs/scheduler.js";
 
 const app = createApp();
 
@@ -13,11 +14,13 @@ const server = app.listen(config.server.port, async () => {
   } catch (err) {
     logger.error({ err }, "database check failed at startup");
   }
+  scheduler.start();
 });
 
 // Graceful shutdown: stop accepting requests, drain the pool, exit.
 async function shutdown(signal) {
   logger.info({ signal }, "shutting down");
+  scheduler.stop();
   server.close(async () => {
     try {
       await closePool();

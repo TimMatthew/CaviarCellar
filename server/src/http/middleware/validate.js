@@ -12,7 +12,19 @@ export function validate(schema, source = "body") {
         new ValidationError("Invalid request", result.error.flatten().fieldErrors)
       );
     }
-    req[source] = result.data;
+    // Express 5 exposes req.query through a getter without a setter. Defining
+    // an own value safely shadows that getter for downstream controllers while
+    // retaining the useful "validated input replaces raw input" contract.
+    if (source === "query") {
+      Object.defineProperty(req, "query", {
+        value: result.data,
+        configurable: true,
+        enumerable: true,
+        writable: false,
+      });
+    } else {
+      req[source] = result.data;
+    }
     next();
   };
 }

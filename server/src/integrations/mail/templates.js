@@ -19,4 +19,32 @@ export const templates = {
         `Оплата при отриманні (післяплата) у відділенні Нової Пошти.`,
     };
   },
+
+  shipmentCreated(order, delivery) {
+    return {
+      subject: `Замовлення №${order.order_id} передано в доставку`,
+      text: `Номер накладної Нової Пошти: ${delivery.ttn}.`,
+    };
+  },
+
+  shipped(order, delivery) {
+    return {
+      subject: `Замовлення №${order.order_id} відправлено`,
+      text: `Відправлення ${delivery.ttn} прямує до вас.`,
+    };
+  },
+
+  delivered(order) {
+    return {
+      subject: `Замовлення №${order.order_id} доставлено`,
+      text: "Дякуємо за покупку в Caviar Cellar.",
+    };
+  },
+
+  degustationBooked(booking) {
+    return {
+      subject: `Дегустацію №${booking.id} заброньовано`,
+      text: `Бронювання на ${new Date(booking.date_t).toLocaleString("uk-UA")} для ${booking.guests_amount} гостей підтверджено.`,
+    };
+  },
 };

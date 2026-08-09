@@ -3,9 +3,10 @@ import { customerService } from "../domain/customer-service.js";
 import { caviarService } from "../domain/caviar-service.js";
 import { orderService } from "../domain/order-service.js";
 import { fondy } from "../../integrations/fondy/fondy-client.js";
-import { sendMail } from "../../integrations/mail/mailer.js";
 import { templates } from "../../integrations/mail/templates.js";
 import { toOrderDto } from "../../http/dto/order-dto.js";
+import { fulfillmentService } from "./fulfillment-service.js";
+import { outboxRepo } from "../../reps/outbox-repo.js";
 
 // The place-order use-case. Owns the transaction boundary: customer + stock
 // reservation + order + items commit together or not at all. External work
@@ -22,6 +23,12 @@ export const checkoutService = {
         tx
       );
       await orderService.addItems(order.order_id, lines, tx);
+      await fulfillmentService.prepare(
+        order.order_id,
+        input.delivery,
+        input.paymentMethod === "cod" ? total : null,
+        tx
+      );
       return order.order_id;
     });
 
@@ -34,9 +41,8 @@ export const checkoutService = {
       return { order: toOrderDto(order, order.items), checkoutUrl };
     }
 
-    // COD: no online payment; acknowledge the order by email.
-    const msg = templates.orderPlacedCod(order);
-    await sendMail({ to: order.customer_email, ...msg });
-    return { order: toOrderDto(order, order.items) };
+    const delivery = await fulfillmentService.fulfill(orderId);
+    await outboxRepo.enqueue({ to: order.customer_email, ...templates.orderPlacedCod(order) });
+    return { order: toOrderDto(order, order.items), trackingNumber: delivery.ttn };
   },
 };

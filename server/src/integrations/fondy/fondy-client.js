@@ -3,6 +3,7 @@ import { fondySignature } from "./fondy-signature.js";
 import { IntegrationError, PaymentError } from "../../domain/errors.js";
 
 const CHECKOUT_URL = "https://pay.fondy.eu/api/checkout/url/";
+const REVERSE_URL = "https://pay.fondy.eu/api/reverse/order_id/";
 
 function ensureConfigured() {
   if (!config.fondy.merchantId || !config.fondy.secretKey) {
@@ -60,6 +61,35 @@ export const fondy = {
       approved: valid && body.order_status === "approved",
       fondyOrderRef: body.order_id,
       fondyPaymentId: body.payment_id != null ? String(body.payment_id) : null,
+    };
+  },
+
+  async reverse(order) {
+    ensureConfigured();
+    const request = {
+      order_id: order.fondy_order_ref,
+      merchant_id: config.fondy.merchantId,
+      amount: String(order.total_price * 100),
+      currency: "UAH",
+    };
+    request.signature = fondySignature(request, config.fondy.secretKey);
+    let json;
+    try {
+      const response = await fetch(REVERSE_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ request }),
+      });
+      json = await response.json();
+    } catch (error) {
+      throw new IntegrationError("Fondy reversal request failed", { cause: error.message });
+    }
+    const result = json.response;
+    if (result?.response_status !== "success") {
+      throw new PaymentError("Fondy reversal failed", { error: result?.error_message });
+    }
+    return {
+      reverseRef: String(result.reverse_id ?? result.payment_id ?? order.fondy_payment_id),
     };
   },
 };
