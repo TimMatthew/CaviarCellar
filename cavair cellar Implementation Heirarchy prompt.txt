@@ -1,0 +1,147 @@
+________________________________________________________________________________________________
+			
+                     CAVIAR CELLAR IMPLEMENTATION HIERARCHY PROMPT (DIRECTORY)
+________________________________________________________________________________________________
+
+
+
+The guiding principle is build bottom-up along the dependency graph, but cut one thin vertical slice early to prove the wiring end-to-end. Bottom-up means every part you write can be tested against parts that already exist (you're never depending on something unbuilt), and the early vertical slice means you have a running server on day one, then flesh it out — rather than building for a week before anything runs. Everything below is ordered by "what must exist before this can work."
+
+Phase A — Foundations (no dependencies; everyone depends on these)
+
+1. config/ — Loads and validates env/secrets into one typed object.
+Why first: literally everything downstream reads DB credentials, the Fondy key, SMTP settings. It depends on nothing, and nothing works until it exists. Build it first so every later part imports config rather than reaching into process.env ad hoc.
+
+2. db/migrations/ + db/seed/ — Your existing SQL, reorganized into ordered files (001_init.sql, 002_add_delivery.sql, …) plus seed_caviar.sql.
+Why here: the schema must physically exist before any repository can run a query against it. Your DB is already built in pgAdmin, so this step is mostly organizational — but doing it now guarantees the database is reproducible from the repo before you write code that assumes its tables.
+
+3. db/pool.js — Creates the shared pg connection pool from config.
+Why here: it needs config (step 1) and it's the single dependency every repository and withTransaction builds on. Nothing that touches the database can be written before this.
+
+4. domain/errors.js — The error type hierarchy (NotFoundError, ValidationError, ConflictError, PaymentError).
+Why here: it's pure (no dependencies) and almost everything throws these — services, the state machine, middleware. Building it now means every later part can throw the right error type from its first line, instead of being retrofitted.
+
+5. db/withTransaction.js — The BEGIN/COMMIT/ROLLBACK/release helper.
+Why here: it depends only on the pool (step 3). It comes before services because the use-case services can't own a transaction boundary without it — but it's simple enough to nail down now while you're still in the DB layer.
+
+Phase B — First vertical slice (prove the whole stack with the simplest resource: caviar)
+
+6. reps/caviar.js — Parameterized SQL for the caviar table.
+Why here: caviar is the simplest table (no cross-entity rules, no money), so it's the safest place to establish the repository pattern and confirm the pool actually talks to Postgres.
+
+7. http/middleware/ (errorHandler, validate, auth) — The cross-cutting request plumbing.
+Why here: you can't run any route cleanly without at least errorHandler (it turns your step-4 errors into HTTP codes) and validate. Building them now, before the first controller, means every controller you write afterward is thin from the start.
+
+8. http/dto/ (caviar mapper) — Maps DB rows (snake_case, location_t) to clean API shapes.
+Why here: it's pure and needed the moment a controller returns data; establishing it on the caviar slice sets the pattern for hiding schema details from the API.
+
+9. services/domain/caviar.js — Caviar business rules + CRUD on top of the repository.
+Why here: depends on the caviar repository (step 6) and errors (step 4), both now built. It's the thin layer the controller will call.
+
+10. http/controllers/caviar.js + http/routes.js — The caviar endpoints, wired to middleware.
+Why here: depends on the service (9), dto (8), and middleware (7) — all in place. This completes the chain from HTTP down to SQL for one resource.
+
+11. app.js + server.js — Assemble Express (middleware, routes, static web/) and the entrypoint.
+Why here: now that one full route exists, wiring the app proves the entire stack end-to-end — you can hit /api/caviar and get real data. From this point you have a running server and add features to a living system, testing each as you go.
+
+Phase C — The order & payment core
+
+12. domain/orderStateMachine.js — Legal order status transitions.
+Why here: pure business rule, depends only on errors (step 4). It must exist before the order service and any payment flow, since those are the code that changes order status and must be guarded.
+
+13. Remaining reps/ (customer, order, orderItem, delivery, deliveryEvent, refund) — Data access for the rest of the tables.
+Why here: same pattern you validated with caviar (step 6), now repeated. Services above them can't be written until these exist.
+
+14. services/domain/ (customer, order, degustation) — Per-entity rules on those reps.
+Why here: depend on the reps (13), state machine (12), and errors — all now built.
+
+15. integrations/fondy/ + integrations/mail/ — The payment gateway and SMTP adapters, behind interfaces.
+Why here: they depend only on config, so they could have come earlier — but you need them right before the checkout use-case that consumes them, and building them now keeps them next to their first user. (Stub them first if you want checkout tested without live Fondy.)
+
+16. services/usecase/checkout.js + fulfillment.js + refund.js — The transaction-owning orchestration.
+Why here: this is the top of the dependency graph — it needs domain services (14), integrations (15), withTransaction (5), and the state machine (12). It can only be written once everything beneath it is real.
+
+17. http/controllers/ for orders + payments (webhook) — The order-placement and Fondy-callback endpoints.
+Why here: depend on the use-case services (16). The payment webhook in particular can't be built until checkout exists to mark orders paid.
+
+Phase D — Delivery tracking & background jobs
+
+18. integrations/novaPoshta/ — The shipment-creation and tracking adapter.
+Why here: needed by fulfillment (for creating waybills) and by the tracking use-case/poller. Built now because both consumers are about to appear.
+
+19. services/usecase/tracking.js — Applies NP status updates to deliveries and fires side effects.
+Why here: depends on the delivery reps (13), the NP adapter (18), and the mail adapter (15).
+
+20. jobs/pollDeliveries.js + jobs/sendOutbox.js — The scheduled workers, wired into server.js.
+Why last: jobs sit beside controllers as an alternate entry point — they call the same use-case/domain services (19). They can only be built once those services exist, and they're the final thing you wire into the running server.
+
+The payoff of this exact order: after step 11 you always have a runnable server, and every subsequent part is added to a system you can immediately exercise — you never write more than a few files before you can test them against real, already-working layers. The riskiest code (money, transactions, webhooks) lands in the middle, on top of a foundation you've already proven, not on faith.
+
+Want me to scaffold it in exactly this sequence — generating the files phase by phase against your actual schema, starting with Phase A and the caviar vertical slice — so you can run it after Phase B and then grow it?
+
+
+
+
+________________________________________________________________________________________________
+			
+                     CAVIAR CELLAR IMPLEMENTATION HIERARCHY PROMPT (FILES)
+________________________________________________________________________________________________
+
+
+
+
+Same phased strategy as before — bottom-up along the dependency graph, with a vertical slice early so you have a running server fast — now expanded to the actual filenames. Build each item only after everything it imports already exists.
+
+Phase A — Foundations
+Pure/low-level pieces everything else imports. Nothing runs yet, but nothing downstream can be written without these.
+
+1) config/index.js — depends on nothing; everything reads DB creds, Fondy key, SMTP from here.
+2) lib/logger.js — pino logger; trivial, and every layer logs, so have it early.
+3) db/migrations/001_… → 005_… + db/seed/seed_caviar.sql — the schema must physically exist before any query runs. Ordered so a fresh DB rebuilds deterministically.
+4) db/pool.js — needs config; the single connection source every repository builds on.
+5) domain/errors.js — pure, no deps; almost everything throws these, so define them before anything that throws.
+6) db/withTransaction.js — needs only pool; comes before services because use-case services can't own a transaction boundary without it.
+
+Phase B — First vertical slice (caviar, the simplest resource)
+Proves the whole stack end-to-end. After this phase you have a running server.
+
+1) reps/caviar-repo.js — needs pool; caviar is the safest table (no money, no cross-entity rules) to establish the repository pattern on.
+2) http/middleware/errorHandler.js — needs domain/errors; turns thrown errors into HTTP codes. Nothing routes cleanly without it.
+3) http/middleware/validate.js — generic zod-runner; needed before any controller so input is guarded from the first route.
+4) http/validators/caviar-schema.js — the zod schema validate runs for caviar writes.
+5) http/dto/caviar-dto.js — pure row→API mapper; needed the moment a controller returns data.
+6) services/domain/caviar-service.js — needs caviar.repo + errors; the thin rules/CRUD layer the controller calls.
+7) http/controllers/caviar-controller.js — needs the service, dto, validators; completes HTTP→SQL for one resource.
+8) http/routes.js — mounts the caviar controller (grows as later controllers land).
+9) app.js — assembles Express: middleware order, routes, static web/.
+10) server.js — entrypoint; starts the HTTP server. Run it now — /api/caviar returns real data, proving the entire stack.
+
+Phase C — Order & payment core
+The money path, built on the proven foundation. Riskiest code lands here, on solid ground.
+
+1) domain/orderStateMachine.js — pure, needs errors; must exist before any code that changes order status.
+2)  reps/: customer.repo.js, admin.repo.js, order.repo.js, orderItem.repo.js — same pattern as caviar, now for the order tables. (customer = the profile+user_t 4) pair; admin for auth.)
+3) http/validators/order-schema.js + http/dto/order.dto.js — guard and shape order data.
+4) services/domain/customer-service.js, services/domain/order.service.js — need their repos + state machine + errors.
+5) integrations/mail/mailer.js + mail/templates.js — need only config; built now because checkout/fulfillment are about to consume them. (Stub-friendly for testing.)
+6) integrations/fondy/fondy-signature.js → fondy/fondy.client.js — signature helper first (the client depends on it); createCheckout + reverse.
+7) services/usecase/checkout-service.js — the first transaction owner; needs order/customer/caviar services, withTransaction, Fondy client, state machine. Top of the graph 9) → built after all of them.
+8) http/controllers/order-controller.js — needs checkout; the place-order endpoint.
+9) http/controllers/payment-controller.js — the Fondy webhook; needs checkout/order service to mark paid, and fondy.signature to verify. Can't exist before checkout does.
+10) http/middleware/auth.js + http/controllers/auth.controller.js — need admin.repo (argon2 hash); gate the admin write routes now that real write endpoints exist.
+
+Phase D — Delivery, fulfillment & jobs 
+Everything after payment — shipment, tracking, background work.
+
+1) domain/deliveryStateMachine.js — pure; guards delivery status transitions.
+2) reps/: delivery-repo.js, deliveryEvent.repo.js, refund.repo.js, degustation.repo.js — the remaining tables.
+3) http/dto/delivery-dto.js + http/validators/degustation.schema.js — shape/guard the new resources.
+4) integrations/novaPoshta/statusMap.js → novaPoshta/novaPoshta.client.js — status map first (the client uses it); createShipment, track, trackMany, labelUrl.
+5) services/domain/degustation-service.js — needs its repo; enables degustation booking + its notification.
+6) services/usecase/fulfillment-service.js — needs NP client, delivery/order repos, mailer, delivery state machine; creates the waybill after payment.
+7) services/usecase/refund-service.js — needs Fondy reverse, refund.repo, order state machine; the prepaid-not-collected path.
+8) services/usecase/tracking-service.js — needs NP client, delivery repos, mailer; applies polled status → events → side effects.
+9) http/controllers/delivery-controller.js + http/controllers/degustation.controller.js — expose tracking, admin label print, and booking; wire into routes.js.
+10) jobs/pollDeliveries.js + jobs/sendOutbox.js — call tracking/fulfillment services; the workers themselves.
+11) jobs/scheduler.js — registers the cron schedules for those jobs.
+12) Wire scheduler.start() into server.js — the final connection; now the running server also polls and sends mail on schedule.

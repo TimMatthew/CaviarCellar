@@ -1,5 +1,6 @@
 import { caviarRepo } from "../../reps/caviar-repo.js";
 import { NotFoundError } from "../../domain/errors.js";
+import { ConflictError } from "../../domain/errors.js";
 
 // Business rules + CRUD for one aggregate (caviar). Sits between the controller
 // and the repository: the controller stays HTTP-only, the repository stays

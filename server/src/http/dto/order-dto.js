@@ -26,3 +26,7 @@ export function toOrderDto(row, items) {
   }
   return dto;
 }
+
+export function toOrderDtoList(rows) {
+  return rows.map((row) => toOrderDto(row));
+}

@@ -15,6 +15,10 @@ export const orderService = {
     return orderItemRepo.insertMany(orderId, lines, tx);
   },
 
+  list({ status, limit, offset } = {}) {
+    return orderRepo.findAll({ status, limit, offset });
+  },
+
   async getById(id) {
     const order = await orderRepo.findById(id);
     if (!order) throw new NotFoundError("Order", id);

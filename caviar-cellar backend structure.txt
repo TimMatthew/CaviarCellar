@@ -1,0 +1,151 @@
+_________________________________________________________________________________________
+			
+				DIRECTORY STRUCTURE
+_________________________________________________________________________________________
+
+caviar-cellar/
+├── web/                      ← your existing static site, grouped
+│   ├── assets/               (backgrounds, catalog, degust, delivery, …)
+│   ├── catalog/              catalog.js, products.js, catalog.css, *.html
+│   ├── degust/
+│   └── hero/
+│
+├── server/                   ← the Node backend (new)
+│   ├── src/
+│   │   ├── config/           typed env + secrets
+│   │   ├── db/
+│   │   │   ├── pool.js        pg Pool
+│   │   │   ├── withTransaction.js
+│   │   │   ├── migrations/    ← your db-scripts, as ordered files
+│   │   │   └── seed/          ← seed_caviar.sql lives here
+│   │   ├── repositories/      caviar, order, orderItem, delivery, deliveryEvent, refund, customer
+│   │   ├── services/
+│   │   │   ├── domain/        order, caviar, customer, degustation
+│   │   │   └── usecase/       checkout, fulfillment, refund, tracking
+│   │   ├── integrations/      fondy/, novaPoshta/, mail/
+│   │   ├── jobs/              pollDeliveries, sendOutbox
+│   │   ├── http/              controllers/, middleware/, dto/, routes.js
+│   │   ├── domain/            errors.js, orderStateMachine.js
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── package.json
+│   └── .env                  (git-ignored)
+│
+├── package.json              (optional: workspace root / scripts)
+└── README.md                 (the payment/delivery policy)
+
+
+_________________________________________________________________________________________
+			
+				FILES STRUCTURE
+_________________________________________________________________________________________
+
+
+caviar-cellar/
+├── web/                              ← static site (unchanged, collapsed)
+│   ├── assets/  catalog/  degust/  hero/
+│
+├── server/
+│   ├── package.json
+│   ├── .env                          (git-ignored — real secrets)
+│   ├── .env.example                  (committed — placeholder keys)
+│   ├── .gitignore                    (node_modules, .env, *.db)
+│   │
+│   └── src/
+│       ├── config/
+│       │   └── index.js              load + validate env into one typed object
+│       │
+│       ├── lib/
+│       │   └── logger.js             pino structured logger (shared)
+│       │
+│       ├── db/
+│       │   ├── pool.js               pg Pool built from config
+│       │   ├── withTransaction.js    BEGIN/COMMIT/ROLLBACK/release helper
+│       │   ├── migrations/
+│       │   │   ├── 001_init.sql              profile, user_t, admin_t, caviar, order_t, order_item, degustation
+│       │   │   ├── 002_add_delivery.sql      delivery + delivery_event + views
+│       │   │   ├── 003_add_refund.sql        refund table
+│       │   │   ├── 004_add_email_fondy_refs.sql   user_t.email, order_t.fondy_* , method_t NOT NULL
+│       │   │   ├── 005_rename_keyword_cols.sql    location → location_t
+│       │   │   └── 006_add_admin_login.sql
+│       │   └── seed/
+│       │       └── seed_caviar.sql   the 12 products
+│       │
+│       ├── domain/                   pure business rules (no DB, no HTTP)
+│       │   ├── errors.js             NotFoundError, ValidationError, ConflictError, PaymentError
+│       │   ├── orderStateMachine.js  legal order status transitions
+│       │   └── deliveryStateMachine.js  legal delivery status transitions
+│       │
+│       ├── reps/             SQL only, one file per table, tx-aware
+│       │   ├── caviar-repo.js
+│       │   ├── customer-repo.js      profile + user_t (the identity pair)
+│       │   ├── admin-repo.js         admin_t (for auth)
+│       │   ├── order-repo.js
+│       │   ├── orderItem-repo.js
+│       │   ├── delivery-repo.js
+│       │   ├── deliveryEvent-repo.js
+│       │   ├── refund-repo-js
+│       │   └── degustation-repo.js
+│       │
+│       ├── services/
+│       │   ├── domain/               per-entity rules + CRUD
+│       │   │   ├── caviar-service.js
+│       │   │   ├── customer-service.js
+│       │   │   ├── order-service.js
+│       │   │   └── degustation-service.js
+│       │   └── usecase/              cross-entity orchestration (own transactions)
+│       │       ├── checkout-service.js     price → reserve stock → create order → Fondy/COD
+│       │       ├── fulfillment-service.js  create NP waybill → delivery row → email
+│       │       ├── refund-service.js       Fondy reverse for prepaid-not-collected
+│       │       └── tracking-service.js     apply NP status → events → side effects
+│       │
+│       ├── integrations/             external adapters, behind interfaces
+│       │   ├── fondy/
+│       │   │   ├── fondy-client.js       createCheckout, reverse
+│       │   │   └── fondy-signature.js    sign / verify
+│       │   ├── novaPoshta/
+│       │   │   ├── novaPoshta-client.js  createShipment, track, trackMany, labelUrl
+│       │   │   └── statusMap-js          NP StatusCode → internal status
+│       │   └── mail/
+│       │       ├── mailer-js             nodemailer SMTP transport
+│       │       └── templates-js          order/ship/deliver message bodies
+│       │
+│       ├── jobs/                     scheduled workers (alternate entry point)
+│       │   ├── pollDeliveries-js     poll NP for in-flight parcels
+│       │   ├── sendOutbox-js         retry queued emails
+│       │   └── scheduler-js          registers cron schedules
+│       │
+│       ├── http/
+│       │   ├── controllers/          thin: parse → call service → map result
+│       │   │   ├── caviar-controller.js
+│       │   │   ├── order-controller.js
+│       │   │   ├── payment-controller.js     Fondy webhook (verify signature)
+│       │   │   ├── delivery-controller.js     tracking + admin label print
+│       │   │   ├── degustation-controller.js
+│       │   │   └── auth-controller.js         admin login
+│       │   ├── middleware/
+│       │   │   ├── auth.js           guard admin routes
+│       │   │   ├── validate.js       run a zod schema, reject 400
+│       │   │   └── errorHandler.js   map domain errors → HTTP codes
+│       │   ├── validators/           zod request schemas
+│       │   │   ├── caviar-schema.js
+│       │   │   ├── order-schema.js
+│       │   │   └── degustation-schema.js
+│       │   ├── dto/                  DB row → clean API shape (hide _t / snake_case)
+│       │   │   ├── caviar-dto.js
+│       │   │   ├── order-dto.js
+│       │   │   └── delivery-dto.js
+│       │   └── routes.js             mounts all controllers under /api
+│       │
+│       ├── app.js                    build Express: middleware, routes, static web/
+│       └── server.js                 entrypoint: start HTTP + scheduler
+│
+│   └── tests/                        (optional) mirrors src/, fakes for repos + adapters
+│
+├── package.json                      (optional workspace root / scripts)
+└── README.md                         payment/delivery policy
+
+
+
+
+

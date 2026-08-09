@@ -15,6 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // LAST so it catches everything above it.
 export function createApp() {
   const app = express();
+  const webRoot = path.resolve(__dirname, config.server.webDir);
 
   app.use(helmet());
   app.use(express.json());
@@ -29,9 +30,11 @@ export function createApp() {
 
   app.use("/api", router);
 
-  // Serve the static frontend (web/) from the same origin — no CORS needed.
-  // config.server.webDir is relative to this file (src/), default ../../web.
-  app.use(express.static(path.resolve(__dirname, config.server.webDir)));
+  app.use(express.static(webRoot));
+
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(webRoot, "main.html"));
+  });
 
   app.use(errorHandler);
 

@@ -54,11 +54,14 @@ router.delete(
 
 // ── Orders (public: customers place and view their order) ──
 router.post("/orders", validate(placeOrderSchema), asyncHandler(orderController.create));
+router.get("/orders", requireAuth, asyncHandler(orderController.list));
+router.get("/orders/:id", validate(idParamSchema, "params"), asyncHandler(orderController.get));
 router.get(
   "/orders/:id",
   validate(idParamSchema, "params"),
   asyncHandler(orderController.get)
 );
+
 
 // ── Payments (Fondy server-to-server webhook) ─────────────
 router.post("/payments/fondy/callback", asyncHandler(paymentController.fondyCallback));

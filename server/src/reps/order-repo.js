@@ -24,6 +24,18 @@ export const orderRepo = {
     return rows[0];
   },
 
+  async findAll({ status, limit = 100, offset = 0 } = {}, exec = pool) {
+    const where = status ? "WHERE o.status = $3" : "";
+    const params = status ? [limit, offset, status] : [limit, offset];
+    const { rows } = await exec.query(
+      `${SELECT_WITH_CUSTOMER} ${where}
+       ORDER BY o.order_id DESC
+       LIMIT $1 OFFSET $2`,
+      params
+    );
+    return rows;
+  },
+
   async findById(id, exec = pool) {
     const { rows } = await exec.query(`${SELECT_WITH_CUSTOMER} WHERE o.order_id = $1`, [id]);
     return rows[0] ?? null;
