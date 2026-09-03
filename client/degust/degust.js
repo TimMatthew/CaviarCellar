@@ -1,4 +1,7 @@
 (function () {
+      "use strict";
+
+      var API_BASE = "/api";
       var form = document.getElementById("reservation-form");
       if (!form) return;
 
@@ -13,47 +16,17 @@
       var daysGrid = document.getElementById("calendar-days");
       var prevBtn = document.getElementById("calendar-prev");
       var nextBtn = document.getElementById("calendar-next");
+      var calendarStatus = document.getElementById("calendar-status");
+      var formStatus = document.getElementById("reservation-form-status");
+      var submitButton = form.querySelector(".reservation-form__submit");
 
-      /* ------------------------------------------------------------
-         Session model: 20-minute sessions, 10:00–21:00
-         (10:00–10:20 … 20:40–21:00 → 33 slots per day).
-         ------------------------------------------------------------ */
-      var OPEN_MIN = 10 * 60;
-      var CLOSE_MIN = 21 * 60;
-      var SESSION = 20;
+      var availability = Object.create(null);
+      var availabilityRequest = 0;
 
-      function fmt(totalMinutes) {
-        var h = Math.floor(totalMinutes / 60);
-        var m = totalMinutes % 60;
-        return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m);
-      }
-
-      var ALL_SLOTS = [];
-      for (var s = OPEN_MIN; s + SESSION <= CLOSE_MIN; s += SESSION) {
-        ALL_SLOTS.push(fmt(s) + " – " + fmt(s + SESSION));
-      }
-
-      /* ------------------------------------------------------------
-         Mock availability.
-         Until a booking backend exists, free slots are derived from a
-         deterministic hash of the date, so every visitor sees the same
-         stable pattern: some days fully booked (grey), others with a
-         varying subset of free sessions (green).
-         ------------------------------------------------------------ */
-      function hashDate(key) {
-        var h = 0;
-        for (var i = 0; i < key.length; i++) {
-          h = (h * 31 + key.charCodeAt(i)) % 997;
-        }
-        return h;
-      }
-
-      function freeSlotsFor(dateKey) {
-        var h = hashDate(dateKey);
-        if (h % 4 === 0) return []; // ~25% of days fully booked
-        return ALL_SLOTS.filter(function (_, index) {
-          return (h + index * 7) % 3 !== 0; // stable per-day subset
-        });
+      function apiErrorMessage(payload, fallback) {
+        return payload && payload.error && payload.error.message
+          ? payload.error.message
+          : fallback;
       }
 
       function dateKey(year, month, day) {
@@ -82,7 +55,8 @@
       var viewMonth = today.getMonth();
       var selectedKey = null;
 
-      function renderCalendar() {
+      function renderCalendarDays(state) {
+        state = state || {};
         monthLabel.textContent =
           MONTHS_UA[viewMonth] +
           (viewYear !== today.getFullYear() ? " " + viewYear : "");
@@ -108,23 +82,38 @@
         for (var day = 1; day <= daysInMonth; day++) {
           var key = dateKey(viewYear, viewMonth, day);
           var isPast = new Date(viewYear, viewMonth, day) < today;
-          var free = isPast ? [] : freeSlotsFor(key);
+          var dayAvailability = availability[key];
+          var free = dayAvailability ? dayAvailability.slots : [];
+          var isFree = !isPast && !state.loading && !state.error && free.length > 0;
+          var stateClass = isFree
+            ? "calendar__day--free"
+            : !isPast && state.loading
+              ? "calendar__day--loading"
+              : !isPast && state.error
+                ? "calendar__day--unavailable"
+                : "calendar__day--busy";
 
           var cell = document.createElement("button");
           cell.type = "button";
-          cell.className =
-            "calendar__day " +
-            (free.length ? "calendar__day--free" : "calendar__day--busy");
+          cell.className = "calendar__day " + stateClass;
           cell.textContent = day;
           cell.dataset.key = key;
 
-          if (key === selectedKey) cell.classList.add("is-selected");
+          if (isFree && key === selectedKey) cell.classList.add("is-selected");
 
-          if (!free.length) {
+          if (!isFree) {
             cell.disabled = true;
             cell.setAttribute(
               "aria-label",
-              day + ": " + (isPast ? "минула дата" : "всі сеанси зайняті")
+              day + ": " + (
+                isPast
+                  ? "минула дата"
+                  : state.loading
+                    ? "завантаження доступності"
+                    : state.error
+                      ? "доступність тимчасово невідома"
+                      : "всі сеанси зайняті"
+              )
             );
           } else {
             cell.setAttribute(
@@ -137,6 +126,59 @@
         }
 
         daysGrid.appendChild(frag);
+      }
+
+      async function loadAvailability() {
+        var requestId = ++availabilityRequest;
+        var from = dateKey(viewYear, viewMonth, 1);
+        var lastDay = new Date(viewYear, viewMonth + 1, 0).getDate();
+        var to = dateKey(viewYear, viewMonth, lastDay);
+
+        availability = Object.create(null);
+        daysGrid.setAttribute("aria-busy", "true");
+        calendarStatus.textContent = "Завантажуємо доступні сеанси…";
+        renderCalendarDays({ loading: true });
+
+        try {
+          var response = await fetch(
+            API_BASE + "/degustations/availability?" +
+            new URLSearchParams({ from: from, to: to }).toString(),
+            { headers: { Accept: "application/json" } }
+          );
+          var payload = await response.json().catch(function () { return null; });
+          if (!response.ok) {
+            throw new Error(apiErrorMessage(payload, "Не вдалося завантажити доступність"));
+          }
+          if (requestId !== availabilityRequest) return;
+
+          (payload.days || []).forEach(function (day) {
+            availability[day.date] = day;
+          });
+          calendarStatus.textContent = "Доступні сеанси завантажено";
+          renderCalendarDays();
+        } catch (error) {
+          if (requestId !== availabilityRequest) return;
+          console.error(error);
+          calendarStatus.textContent =
+            "Не вдалося завантажити вільні сеанси. Спробуйте ще раз.";
+          renderCalendarDays({ error: true });
+        } finally {
+          if (requestId === availabilityRequest) {
+            daysGrid.removeAttribute("aria-busy");
+          }
+        }
+      }
+
+      function renderCalendar() {
+        var selectedParts = selectedKey ? selectedKey.split("-") : null;
+        if (
+          selectedParts &&
+          (Number(selectedParts[0]) !== viewYear || Number(selectedParts[1]) !== viewMonth + 1)
+        ) {
+          selectedKey = null;
+          card.hidden = true;
+        }
+        loadAvailability();
       }
 
       prevBtn.addEventListener("click", function () {
@@ -160,18 +202,19 @@
         slotsGrid.innerHTML = "";
         var frag = document.createDocumentFragment();
 
-        freeList.forEach(function (range) {
+        freeList.forEach(function (slot) {
           var label = document.createElement("label");
           label.className = "time-slot";
 
           var radio = document.createElement("input");
           radio.type = "radio";
           radio.name = "time";
-          radio.value = range;
+          radio.value = slot.start;
+          radio.dataset.label = slot.label;
 
           var text = document.createElement("span");
           text.className = "time-slot__text";
-          text.textContent = range;
+          text.textContent = slot.label;
 
           label.appendChild(radio);
           label.appendChild(text);
@@ -190,7 +233,7 @@
         cell.classList.add("is-selected");
 
         selectedKey = cell.dataset.key;
-        renderSlots(freeSlotsFor(selectedKey));
+        renderSlots(availability[selectedKey].slots);
 
         cardDate.textContent =
           "Обрана дата: " + selectedKey.split("-").reverse().join(".");
@@ -320,13 +363,19 @@
         document.body.classList.remove("reservation-modal-open");
       }
 
-      form.addEventListener("submit", function (event) {
+      form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
         var size = form.querySelector("#party-size");
         var checkedSlot = form.querySelector('input[name="time"]:checked');
         var clientName = form.querySelector("#client-name");
         var clientPhone = form.querySelector("#client-phone");
+        var clientEmail = form.querySelector("#client-email");
+
+        formStatus.textContent = "";
+        formStatus.classList.remove("is-error", "is-success");
+        clientName.classList.remove("is-error");
+        clientEmail.classList.remove("is-error");
 
         if (!selectedKey) {
           daysGrid.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -340,7 +389,14 @@
         }
 
         if (!clientName.value.trim()) {
+          clientName.classList.add("is-error");
           clientName.focus();
+          return;
+        }
+
+        if (!clientEmail.checkValidity()) {
+          clientEmail.classList.add("is-error");
+          clientEmail.focus();
           return;
         }
 
@@ -355,6 +411,8 @@
           return;
         }
 
+        var codeDigits = country.code.replace(/\D/g, "");
+        var normalizedPhone = codeDigits + digits;
         var fullPhone = country.code + " " + groupDigits(digits);
 
         var sizeLabel = size.options[size.selectedIndex].text;
@@ -366,27 +424,102 @@
           "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"
         ];
         var parts = selectedKey.split("-"); // YYYY-MM-DD
-        var startTime = checkedSlot.value.split(" – ")[0];
+        var slotLabel = checkedSlot.dataset.label;
+        var startTime = slotLabel.split(" – ")[0];
         var atWord = startTime.indexOf("11:") === 0 ? "об" : "о";
         var dateLine =
           Number(parts[2]) + " " + MONTHS_GEN[Number(parts[1]) - 1] + " " +
           parts[0] + ", " + atWord + " " + startTime;
 
-        var lines = [
-          clientName.value.trim() + " - " + sizeLabel,
-          dateLine,
-          fullPhone
-        ];
+        submitButton.disabled = true;
+        submitButton.textContent = "Бронюємо…";
+        formStatus.textContent = "Перевіряємо та зберігаємо бронювання…";
 
-        summary.innerHTML = "";
-        lines.forEach(function (text) {
-          var line = document.createElement("span");
-          line.className = "reservation-summary__line";
-          line.textContent = text;
-          summary.appendChild(line);
-        });
+        try {
+          var response = await fetch(API_BASE + "/degustations", {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              customer: {
+                name: clientName.value.trim(),
+                phone: normalizedPhone,
+                email: clientEmail.value.trim()
+              },
+              date: checkedSlot.value,
+              guestsAmount: Number(size.value)
+            })
+          });
+          var payload = await response.json().catch(function () { return null; });
+          if (!response.ok) {
+            var bookingError = new Error(
+              apiErrorMessage(payload, "Не вдалося створити бронювання")
+            );
+            bookingError.status = response.status;
+            throw bookingError;
+          }
 
-        openDialog();
+          var bookedDateKey = selectedKey;
+          var bookedStart = checkedSlot.value;
+          var lines = [
+            "Бронювання №" + payload.id,
+            clientName.value.trim() + " - " + sizeLabel,
+            dateLine,
+            fullPhone,
+            clientEmail.value.trim()
+          ];
+
+          summary.innerHTML = "";
+          lines.forEach(function (text) {
+            var line = document.createElement("span");
+            line.className = "reservation-summary__line";
+            line.textContent = text;
+            summary.appendChild(line);
+          });
+
+          var bookedDay = availability[bookedDateKey];
+          if (bookedDay) {
+            bookedDay.slots = bookedDay.slots.filter(function (slot) {
+              return slot.start !== bookedStart;
+            });
+            bookedDay.available = bookedDay.slots.length > 0;
+          }
+
+          form.reset();
+          updatePhoneMeta();
+          if (bookedDay && bookedDay.slots.length) {
+            renderSlots(bookedDay.slots);
+          } else {
+            selectedKey = null;
+            card.hidden = true;
+          }
+          renderCalendarDays();
+          formStatus.textContent = "";
+          openDialog();
+        } catch (error) {
+          console.error(error);
+          if (error.status === 409) {
+            formStatus.textContent =
+              "Цей сеанс щойно забронювали. Оберіть інший вільний час.";
+            await loadAvailability();
+            if (selectedKey && availability[selectedKey]) {
+              renderSlots(availability[selectedKey].slots);
+              if (!availability[selectedKey].slots.length) {
+                selectedKey = null;
+                card.hidden = true;
+              }
+            }
+          } else {
+            formStatus.textContent =
+              error.message || "Не вдалося створити бронювання. Спробуйте ще раз.";
+          }
+          formStatus.classList.add("is-error");
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Забронювати столик";
+        }
       });
 
       closeBtn.addEventListener("click", closeDialog);

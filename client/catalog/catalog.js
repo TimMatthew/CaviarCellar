@@ -1,9 +1,9 @@
 (function () {
   "use strict";
 
-  // Product data is provided by products.js as a global array: window.PRODUCTS
-  // (loaded via <script src="products.js"> BEFORE this file). This avoids fetch(),
-  // so the page also works when opened directly from disk (file://).
+  // PostgreSQL-backed product data is loaded through the public caviar API.
+  // Prices and stock shown here therefore match basket and checkout validation.
+  var CATALOG_URL = "/api/caviar";
   var IMAGE_BASE = "../assets/catalog/cans/ready/";
   var ICON_BASE = "../assets/catalog/svg/";
 
@@ -29,6 +29,32 @@
     return String(name).toLowerCase().trim()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+  }
+  function normalizeSearchText(value) {
+    return String(value == null ? "" : value)
+      .normalize("NFKD")
+      .toLocaleLowerCase("uk-UA")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  function getRequestedFishFilter() {
+    return (new URLSearchParams(window.location.search).get("search") || "")
+      .trim()
+      .slice(0, 100);
+  }
+  function getFishSearchAliases(fish) {
+    // The database currently contains the Russian-derived spelling "Белуга",
+    // while the public Ukrainian UI correctly uses "Білуга".
+    return normalizeSearchText(fish) === "белуга" ? "Білуга Білуги" : "";
+  }
+  function matchesRequestedFish(fish, requestedFish) {
+    var normalizedRequest = normalizeSearchText(requestedFish);
+    if (!normalizedRequest) return false;
+
+    return [fish].concat(getFishSearchAliases(fish).split(" ")).some(function (candidate) {
+      return normalizeSearchText(candidate) === normalizedRequest;
+    });
   }
 
   /* ---------- rendering ---------- */
@@ -90,13 +116,26 @@
 
     // Stash the data the modal needs, so we don't re-parse the DOM.
     if (inStock) {
-      article._product = { amount: amount, price: p.priceUah, name: p.name };
+      article._product = {
+        id: Number(p.id),
+        amount: amount,
+        price: p.priceUah,
+        name: p.name
+      };
     }
     // Data used by the filter sidebar (kept for every card, in or out of stock).
     article._filter = {
       fish: p.fish,
       country: p.manufacturer,
-      weight: Number(p.netWeightGrams) || 0
+      weight: Number(p.netWeightGrams) || 0,
+      searchText: normalizeSearchText([
+        p.name,
+        p.manufacturer,
+        p.fish,
+        getFishSearchAliases(p.fish),
+        p.description,
+        p.netWeightGrams + " г"
+      ].join(" "))
     };
     return article;
   }
@@ -137,12 +176,15 @@
       button.setAttribute("aria-haspopup", "dialog");
       button.setAttribute("aria-expanded", "false");
       button.addEventListener("click", function () {
-        openModal(button, data.amount, data.price, data.name);
+        openModal(button, data);
       });
     });
 
-    function openModal(button, maxAmount, unitPrice, productName) {
+    function openModal(button, product) {
       closeModal();
+      var maxAmount = product.amount;
+      var unitPrice = product.price;
+      var productName = product.name;
       var startQty = Math.min(1, maxAmount);
 
       // Full-screen backdrop: blurs and blocks all interaction with the page behind it
@@ -204,15 +246,26 @@
 
       range.addEventListener("input", render);
 
-      confirm.addEventListener("click", function () {
+      confirm.addEventListener("click", async function () {
         var q = parseInt(range.value, 10) || 0;
         if (q <= 0) return;
-        modal.innerHTML = "";
-        var msg = document.createElement("p");
-        msg.className = "order-popover__done";
-        msg.textContent = "\u0417\u0430\u043C\u043E\u0432\u043B\u0435\u043D\u043D\u044F \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E"; // Замовлення підтверджено
-        modal.appendChild(msg);
-        setTimeout(closeModal, 1400);
+        confirm.disabled = true;
+        confirm.textContent = "\u0414\u043E\u0434\u0430\u0454\u043C\u043E\u2026"; // Додаємо…
+        try {
+          if (!window.CaviarBasket) throw new Error("\u041A\u043E\u0448\u0438\u043A \u043D\u0435 \u0437\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043E");
+          var result = await window.CaviarBasket.add(product.id, q);
+          modal.innerHTML = "";
+          var msg = document.createElement("p");
+          msg.className = "order-popover__done";
+          msg.textContent = result.limited
+            ? "\u0414\u043E\u0434\u0430\u043D\u043E \u0432\u0441\u044E \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0443 \u043A\u0456\u043B\u044C\u043A\u0456\u0441\u0442\u044C"
+            : "\u0422\u043E\u0432\u0430\u0440 \u0434\u043E\u0434\u0430\u043D\u043E \u0434\u043E \u043A\u043E\u0448\u0438\u043A\u0430";
+          modal.appendChild(msg);
+          setTimeout(closeModal, 1100);
+        } catch (error) {
+          confirm.disabled = false;
+          confirm.textContent = error.message || "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u0434\u043E\u0434\u0430\u0442\u0438";
+        }
       });
 
       modal.appendChild(close);
@@ -244,6 +297,7 @@
 
   function setupFilters(grid, products) {
     var toggle = document.querySelector(".catalog-filter-toggle");
+    var searchInput = document.querySelector("#product-search");
     if (!toggle) return;
 
     var fishTypes = uniqueSorted(products.map(function (p) { return p.fish; }));
@@ -259,6 +313,27 @@
     var selectedCountries = new Set();
     var massMin = minWeight;
     var massMax = maxWeight;
+    var requestedFish = getRequestedFishFilter();
+
+    if (requestedFish) {
+      var matchedFish = fishTypes.find(function (fish) {
+        return matchesRequestedFish(fish, requestedFish);
+      });
+      if (matchedFish) selectedFish.add(matchedFish);
+      if (searchInput) searchInput.value = "";
+    }
+
+    var initialSearch = normalizeSearchText(searchInput ? searchInput.value : "");
+    var searchTerms = initialSearch ? initialSearch.split(" ") : [];
+
+    if (!grid.id) grid.id = "catalog-products-grid";
+    if (searchInput) searchInput.setAttribute("aria-controls", grid.id);
+
+    var resultStatus = document.createElement("p");
+    resultStatus.className = "visually-hidden";
+    resultStatus.setAttribute("role", "status");
+    resultStatus.setAttribute("aria-live", "polite");
+    grid.parentNode.insertBefore(resultStatus, grid);
 
     /* ---- build DOM ---- */
 
@@ -301,6 +376,7 @@
         var cb = document.createElement("input");
         cb.type = "checkbox";
         cb.value = value;
+        cb.checked = selectedSet.has(value);
         cb.addEventListener("change", function () {
           if (cb.checked) selectedSet.add(value);
           else selectedSet.delete(value);
@@ -459,10 +535,15 @@
         var okFish = selectedFish.size === 0 || selectedFish.has(f.fish);
         var okCountry = selectedCountries.size === 0 || selectedCountries.has(f.country);
         var okMass = f.weight >= massMin && f.weight <= massMax;
-        var show = okFish && okCountry && okMass;
+        var okSearch = searchTerms.length === 0 || searchTerms.every(function (term) {
+          return f.searchText.indexOf(term) !== -1;
+        });
+        var show = okFish && okCountry && okMass && okSearch;
         card.hidden = !show;
         if (show) visible++;
       });
+
+      resultStatus.textContent = "Знайдено товарів: " + visible;
 
       if (visible === 0) {
         if (!emptyMsg) {
@@ -476,7 +557,16 @@
       }
     }
 
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        var query = normalizeSearchText(searchInput.value);
+        searchTerms = query ? query.split(" ") : [];
+        applyFilters();
+      });
+    }
+
     updateRangeUI();
+    applyFilters();
   }
 
   /* ---------- bootstrap ---------- */
@@ -488,22 +578,46 @@
       '</p>';
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  async function loadProducts() {
+    var response = await fetch(CATALOG_URL, {
+      headers: { Accept: "application/json" },
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      throw new Error("Catalog request failed with status " + response.status);
+    }
+    var products = await response.json();
+    if (!Array.isArray(products)) throw new Error("Catalog response is invalid");
+    return products.map(function (product) {
+      return {
+        id: Number(product.id),
+        name: product.title,
+        manufacturer: product.manufacturerCountry || "\u2014",
+        fish: product.fish || "\u2014",
+        description: product.description || "",
+        netWeightGrams: Number(product.netWeightGrams) || 0,
+        priceUah: Number(product.priceUah) || 0,
+        amount: Number(product.amount) || 0,
+        image: product.imagePath || ""
+      };
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", async function () {
     var grid = document.querySelector(".products-grid");
     if (!grid) return;
 
-    var products = window.PRODUCTS;
-    if (!Array.isArray(products)) {
+    grid.setAttribute("aria-busy", "true");
+    try {
+      var products = await loadProducts();
+      renderProducts(grid, products);
+      initOrdering(grid);
+      setupFilters(grid, products);
+    } catch (error) {
       showError(grid);
-      console.error(
-        "window.PRODUCTS is not available. Make sure products.js is loaded " +
-        "with <script src=\"products.js\"></script> BEFORE catalog.js."
-      );
-      return;
+      console.error("Catalog loading failed", error);
+    } finally {
+      grid.removeAttribute("aria-busy");
     }
-
-    renderProducts(grid, products);
-    initOrdering(grid);
-    setupFilters(grid, products);
   });
 })();

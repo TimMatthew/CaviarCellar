@@ -2,6 +2,11 @@ import { degustationService } from "../../services/domain/degustation-service.js
 import { toDegustationDto, toDegustationDtoList } from "../dto/degustation-dto.js";
 
 export const degustationController = {
+  async availability(req, res) {
+    const days = await degustationService.availability(req.query);
+    res.json({ from: req.query.from, to: req.query.to, days });
+  },
+
   async create(req, res) {
     const booking = await degustationService.create(req.body);
     res.status(201).json(toDegustationDto(booking));

@@ -11,7 +11,7 @@ const schema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   BASE_URL: z.string().url().default("http://localhost:3000"),
-  WEB_DIR: z.string().default("../../client"),
+  WEB_DIR: z.string().default("../client"),
 
   // Database — required
   DB_HOST: z.string().default("localhost"),

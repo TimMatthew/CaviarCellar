@@ -9,8 +9,10 @@ import { mapNovaPoshtaStatus } from "../src/integrations/novaPoshta/statusMap.js
 import { toDeliveryDto } from "../src/http/dto/delivery-dto.js";
 import {
   createDegustationSchema,
+  degustationAvailabilitySchema,
   listDegustationSchema,
 } from "../src/http/validators/degustation-schema.js";
+import { isDegustationSlot } from "../src/domain/degustationSchedule.js";
 import { registerAdminSchema } from "../src/http/validators/auth-schema.js";
 import { validate } from "../src/http/middleware/validate.js";
 import { deliveryDestinationSchema } from "../src/http/validators/delivery-schema.js";
@@ -104,6 +106,37 @@ test("degustation validation requires a future date and normalized phone", () =>
     guestsAmount: 0,
   });
   assert.equal(invalid.success, false);
+});
+
+test("degustation availability accepts a bounded valid date range", () => {
+  assert.equal(
+    degustationAvailabilitySchema.safeParse({
+      from: "2026-08-01",
+      to: "2026-08-31",
+    }).success,
+    true
+  );
+  assert.equal(
+    degustationAvailabilitySchema.safeParse({
+      from: "2026-08-31",
+      to: "2026-08-01",
+    }).success,
+    false
+  );
+  assert.equal(
+    degustationAvailabilitySchema.safeParse({
+      from: "2026-02-30",
+      to: "2026-03-01",
+    }).success,
+    false
+  );
+});
+
+test("degustation schedule uses 20-minute Kyiv slots from 10:00 through 20:40", () => {
+  assert.equal(isDegustationSlot("2026-08-10T07:00:00.000Z"), true);
+  assert.equal(isDegustationSlot("2026-08-10T17:40:00.000Z"), true);
+  assert.equal(isDegustationSlot("2026-08-10T07:10:00.000Z"), false);
+  assert.equal(isDegustationSlot("2026-08-10T18:00:00.000Z"), false);
 });
 
 test("administrator registration enforces username and password rules", () => {

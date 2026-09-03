@@ -19,6 +19,7 @@ import { placeOrderSchema } from "./validators/order-schema.js";
 import { loginSchema, registerAdminSchema } from "./validators/auth-schema.js";
 import {
   createDegustationSchema,
+  degustationAvailabilitySchema,
   listDegustationSchema,
 } from "./validators/degustation-schema.js";
 import { customerDeliveryQuerySchema } from "./validators/delivery-schema.js";
@@ -108,6 +109,11 @@ router.get(
 );
 
 // ── Degustations: public booking + protected administration ──
+router.get(
+  "/degustations/availability",
+  validate(degustationAvailabilitySchema, "query"),
+  asyncHandler(degustationController.availability)
+);
 router.post(
   "/degustations",
   validate(createDegustationSchema),

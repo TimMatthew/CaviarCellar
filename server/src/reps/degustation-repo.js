@@ -23,6 +23,49 @@ export const degustationRepo = {
     return rows[0] ?? null;
   },
 
+  async availability({ from, to }, exec = pool) {
+    const { rows } = await exec.query(
+      `WITH days AS (
+         SELECT generate_series($1::date, $2::date, interval '1 day')::date AS day
+       ),
+       slots AS (
+         SELECT days.day,
+                local_slot.starts_at AS local_start,
+                local_slot.starts_at AT TIME ZONE 'Europe/Kyiv' AS starts_at
+           FROM days
+           CROSS JOIN LATERAL generate_series(
+             days.day::timestamp + time '10:00',
+             days.day::timestamp + time '20:40',
+             interval '20 minutes'
+           ) AS local_slot(starts_at)
+       )
+       SELECT to_char(slots.day, 'YYYY-MM-DD') AS date,
+              COALESCE(
+                json_agg(
+                  json_build_object(
+                    'start', slots.starts_at,
+                    'label', to_char(slots.local_start, 'HH24:MI') ||
+                             ' – ' ||
+                             to_char(slots.local_start + interval '20 minutes', 'HH24:MI')
+                  )
+                  ORDER BY slots.starts_at
+                ) FILTER (WHERE d.id IS NULL AND slots.starts_at > now()),
+                '[]'::json
+              ) AS slots
+         FROM slots
+         LEFT JOIN degustation d ON d.date_t = slots.starts_at
+        GROUP BY slots.day
+        ORDER BY slots.day`,
+      [from, to]
+    );
+
+    return rows.map((row) => ({
+      date: row.date,
+      available: row.slots.length > 0,
+      slots: row.slots,
+    }));
+  },
+
   async list({ userId, from, limit = 100, offset = 0 } = {}, exec = pool) {
     const clauses = [];
     const params = [];

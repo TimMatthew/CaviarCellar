@@ -16,6 +16,7 @@
 
   <!-- Styles specific to the degustation (reservation) page -->
   <link rel="stylesheet" href="degust.css" />
+  <link rel="stylesheet" href="../shared/basket.css" />
 </head>
 
 <!--
@@ -31,7 +32,7 @@
     · Розмір групи (party size)  → .reservation-field--full  <select>, full width
     · Час (time)                 → .reservation-time__grid — that day's free
                                    sessions only, radios 2 per row
-    · CLIENT-INFO                → .client-info (name + phone with dial codes)
+    · CLIENT-INFO                → .client-info (name, email + phone with dial codes)
     · action CTA                 → .button.button-light (shared primitive)
   Light widget on textured panel → .reservation-card on .reservation (the
                                    same light-card-on-dark-section relation
@@ -39,9 +40,7 @@
   Confirmation state             → .reservation-overlay / .reservation-popover
                                    (reuses the catalog order-popover pattern)
 
-  Assumptions: no booking backend exists yet, so per-day availability is
-  mocked deterministically in JS (hash of the date) — the calendar and the
-  per-day slot grid demonstrate the full flow with stable, repeatable data.
+  Availability and reservations are provided by the Phase D backend API.
 -->
 
 <body>
@@ -138,6 +137,13 @@
           <div class="calendar__days" id="calendar-days" role="grid"
             aria-label="Оберіть дату дегустації"></div>
 
+          <p
+            class="calendar__status"
+            id="calendar-status"
+            role="status"
+            aria-live="polite"
+          ></p>
+
           <p class="calendar__legend">
             <span class="calendar__legend-item calendar__legend-item--free">є вільні сеанси</span>
             <span class="calendar__legend-item calendar__legend-item--busy">все зайнято</span>
@@ -200,6 +206,20 @@
                   type="text"
                   autocomplete="name"
                   placeholder="Ім'я та прізвище"
+                  required
+                />
+
+                <label class="reservation-field__label" for="client-email">
+                  Електронна пошта
+                </label>
+                <input
+                  class="reservation-field__input"
+                  id="client-email"
+                  name="client-email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="name@example.com"
+                  required
                 />
 
                 <label class="reservation-field__label" for="client-phone">
@@ -220,6 +240,7 @@
                     inputmode="tel"
                     autocomplete="tel-national"
                     aria-describedby="phone-hint"
+                    required
                   />
                 </div>
 
@@ -228,6 +249,13 @@
                 <p class="phone-input__hint" id="phone-hint" aria-live="polite"></p>
               </div>
             </div>
+
+            <p
+              class="reservation-form__status"
+              id="reservation-form-status"
+              role="status"
+              aria-live="polite"
+            ></p>
 
             <p class="reservation-form__note">
               Працюємо: Пн – Пт 8:00 – 21:00 · Сб – Нд 9:00 – 19:00.
@@ -367,9 +395,8 @@
     </div>
   </footer>
 
-  <!-- Progressive enhancement: availability calendar, per-day time slots,
-       country dial codes and an in-page confirmation dialog -->
-  
+  <!-- Backend availability, booking, country dial codes and confirmation UI -->
+  <script src="../shared/basket.js"></script>
   <script src="dial-codes.js"></script>
   <script src="degust.js"></script>
 </body>

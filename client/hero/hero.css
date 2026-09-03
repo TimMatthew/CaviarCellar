@@ -472,6 +472,58 @@ h3 {
   font-family: inherit;
 }
 
+.assortment-list li a {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 1.52rem;
+  color: inherit;
+  text-decoration: none;
+  transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.assortment-list li a:hover {
+  color: var(--color-warm-white);
+  text-shadow: 0 0 18px rgba(255, 250, 241, 0.35);
+}
+
+.assortment-list li a span {
+  position: relative;
+  display: inline-block;
+}
+
+.assortment-list li a span::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -0.3rem;
+  left: 0;
+  height: 2px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 260ms ease;
+  pointer-events: none;
+}
+
+.assortment-list li:hover a span::after,
+.assortment-list li a:focus-visible span::after {
+  transform: scaleX(1);
+}
+
+.assortment-list li a:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid var(--color-warm-white);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assortment-list li a span::after {
+    transition: none;
+  }
+}
+
 .assortment-image-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
