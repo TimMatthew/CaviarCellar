@@ -30,9 +30,12 @@ export const orderService = {
     return orderRepo.findByFondyRef(ref);
   },
 
-  attachFondyRef(id, ref) {
-    return orderRepo.attachFondyRef(id, ref);
+  // ==============================================================================
+  // FONDY USD TEST CONVERSION
+  attachFondyPayment(id, payment) {
+    return orderRepo.attachFondyPayment(id, payment);
   },
+  // ==============================================================================
 
   // Idempotent — returns the updated row, or null if the order wasn't pending
   // (already paid). The payment webhook relies on this to survive duplicate

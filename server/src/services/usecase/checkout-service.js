@@ -36,9 +36,25 @@ export const checkoutService = {
     const order = await orderService.getById(orderId);
 
     if (input.paymentMethod === "prepaid_card") {
-      const { checkoutUrl, fondyOrderRef } = await fondy.createCheckout(order);
-      await orderService.attachFondyRef(orderId, fondyOrderRef);
-      return { order: toOrderDto(order, order.items), checkoutUrl };
+      // ============================================================================
+      // FONDY USD TEST CONVERSION
+      const {
+        checkoutUrl,
+        fondyOrderRef,
+        fondyCurrency,
+        fondyAmountMinor,
+      } = await fondy.createCheckout(order);
+      await orderService.attachFondyPayment(orderId, {
+        fondyOrderRef,
+        fondyCurrency,
+        fondyAmountMinor,
+      });
+      return {
+        order: toOrderDto(order, order.items),
+        checkoutUrl,
+        payment: { currency: fondyCurrency, amountMinor: fondyAmountMinor },
+      };
+      // ============================================================================
     }
 
     const delivery = await fulfillmentService.fulfill(orderId);

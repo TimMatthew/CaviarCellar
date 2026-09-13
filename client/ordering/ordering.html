@@ -12,6 +12,7 @@
 
   <link rel="stylesheet" href="../hero/hero.css" />
   <link rel="stylesheet" href="ordering.css" />
+  <link rel="stylesheet" href="../shared/basket.css" />
 </head>
 
 <body>
@@ -55,7 +56,36 @@
 
     <section class="ordering-section" aria-label="Дані замовлення">
       <div class="container">
-        <!-- Static UI prototype: submission and delivery lookups will be connected later. -->
+        <section class="order-summary" aria-labelledby="order-summary-title">
+          <header class="order-summary__header">
+            <div>
+              <p class="order-summary__eyebrow">Ваш кошик</p>
+              <h2 id="order-summary-title">Товари у замовленні</h2>
+            </div>
+            <button class="order-summary__basket-button" type="button" data-open-basket>
+              Повернутися до кошика
+            </button>
+          </header>
+
+          <div class="order-summary__table-wrap">
+            <table class="order-summary__table">
+              <thead>
+                <tr>
+                  <th scope="col">Товар</th>
+                  <th scope="col">Сума</th>
+                  <th scope="col">Кількість</th>
+                </tr>
+              </thead>
+              <tbody data-order-summary-items aria-live="polite">
+                <tr>
+                  <td class="order-summary__state" colspan="3">Завантажуємо товари…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Frontend-only prototype: submission and live delivery lookups will be connected later. -->
         <form class="order-form">
           <fieldset class="order-form__section order-form__section--payment">
             <legend>
@@ -80,6 +110,10 @@
                 </span>
               </label>
             </div>
+
+            <p class="payment-options__note">
+              Після підтвердження замовлення ви перейдете на захищену сторінку Fondy для оплати
+            </p>
           </fieldset>
 
           <fieldset class="order-form__section">
@@ -87,6 +121,7 @@
               <span class="order-form__step">02</span>
               Одержувач
             </legend>
+            <p class="order-form__note">Перевірте контактні дані перед підтвердженням.</p>
 
             <div class="form-grid form-grid--three">
               <div class="form-field">
@@ -129,16 +164,24 @@
             <div class="form-grid form-grid--two">
               <div class="form-field">
                 <label for="customer-phone">Номер телефону</label>
-                <input
-                  id="customer-phone"
-                  name="customer-phone"
+                <div class="phone-input">
+                  <select
+                    class="phone-input__code"
+                    id="customer-phone-code"
+                    name="customer-phone-code"
+                    aria-label="Код країни"
+                  ></select>
+                  <input
+                    class="phone-input__number"
+                    id="customer-phone"
+                    name="customer-phone"
                   type="tel"
                   inputmode="tel"
-                  autocomplete="tel"
-                  placeholder="+380 00 000 00 00"
+                  autocomplete="tel-national"
                   required
                 />
               </div>
+            </div>
 
               <div class="form-field">
                 <label for="customer-email">Електронна пошта</label>
@@ -173,51 +216,29 @@
 
               <div class="form-field">
                 <label for="delivery-city">Місто</label>
-                <select id="delivery-city" name="delivery-city" autocomplete="address-level2" required>
-                  <option value="" selected disabled>Оберіть місто</option>
-                  <optgroup label="Україна">
-                    <option value="kyiv">Київ</option>
-                    <option value="lviv">Львів</option>
-                    <option value="odesa">Одеса</option>
-                  </optgroup>
-                  <optgroup label="Польща">
-                    <option value="warsaw">Варшава</option>
-                    <option value="krakow">Краків</option>
-                  </optgroup>
-                  <optgroup label="Німеччина">
-                    <option value="berlin">Берлін</option>
-                    <option value="munich">Мюнхен</option>
-                  </optgroup>
+                <select id="delivery-city" name="delivery-city" autocomplete="address-level2" required disabled>
+                  <option value="" selected>Спочатку оберіть країну</option>
                 </select>
               </div>
             </div>
 
-            <div class="form-field">
+            <div class="form-field form-field--conditional" id="warehouse-field" aria-live="polite" hidden>
               <label for="delivery-warehouse">Адреса відділення або поштомата</label>
-              <select id="delivery-warehouse" name="delivery-warehouse" required>
-                <option value="" selected disabled>Оберіть відділення</option>
-                <optgroup label="Київ, Україна">
-                  <option value="ua-kyiv-1">Відділення №1 — вул. Пирогівський шлях, 135</option>
-                  <option value="ua-kyiv-7">Відділення №7 — вул. Гната Хоткевича, 8</option>
-                </optgroup>
-                <optgroup label="Львів, Україна">
-                  <option value="ua-lviv-1">Відділення №1 — вул. Городоцька, 359</option>
-                </optgroup>
-                <optgroup label="Варшава, Польща">
-                  <option value="pl-warsaw-1">Nova Post — Męcińska 18</option>
-                </optgroup>
-                <optgroup label="Берлін, Німеччина">
-                  <option value="de-berlin-1">Nova Post — Charlottenstraße 79/80</option>
-                </optgroup>
+              <select id="delivery-warehouse" name="delivery-warehouse" required disabled>
+                <option value="" selected>Оберіть відділення</option>
               </select>
               <p class="form-field__hint">
-                Список відділень буде оновлюватися відповідно до обраної країни та міста після підключення доставки.
+                Список відділень відповідає обраній країні та місту.
               </p>
             </div>
           </fieldset>
 
           <div class="order-form__footer">
-            <p>Перевірте контактні дані перед підтвердженням.</p>
+            <div class="order-form__total" aria-label="Вартість товарів без доставки">
+              <span>Разом за товари</span>
+              <output id="order-total" name="order-total" data-order-total>0 грн</output>
+              <small>Без вартості доставки</small>
+            </div>
             <button class="button button-light order-form__submit" type="button">
               Підтвердити замовлення
             </button>
@@ -255,5 +276,8 @@
       <p>© 2035 by Ikornyi Pohrib. Static HTML/CSS recreation.</p>
     </div>
   </footer>
+  <script src="../shared/basket.js"></script>
+  <script src="../degust/dial-codes.js"></script>
+  <script src="ordering.js"></script>
 </body>
 </html>

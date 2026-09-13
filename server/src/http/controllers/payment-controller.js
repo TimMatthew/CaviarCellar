@@ -18,6 +18,21 @@ export const paymentController = {
 
     let order = await orderService.getByFondyRef(result.fondyOrderRef);
     if (!order) return res.json({ status: "ok" });
+    // ============================================================================
+    // FONDY USD TEST CONVERSION
+    // Never approve a converted test payment unless its signed merchant, currency
+    // and amount match the provider terms stored for this exact order.
+    const callbackIssues = fondy.callbackIssuesForOrder(result, order);
+    if (callbackIssues.length > 0) {
+      return res.status(400).json({
+        error: {
+          code: "PAYMENT_MISMATCH",
+          message: "Fondy callback does not match the order payment",
+          details: { fields: callbackIssues },
+        },
+      });
+    }
+    // ============================================================================
     if (order.status === "pending") {
       const paid = await orderService.markPaid(order.order_id, {
         fondyPaymentId: result.fondyPaymentId,

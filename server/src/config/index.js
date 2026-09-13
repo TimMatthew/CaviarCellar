@@ -31,6 +31,14 @@ const schema = z.object({
   FONDY_MERCHANT_ID: z.string().optional(),
   FONDY_SECRET_KEY: z.string().optional(),
   CHECKOUT_RETURN_URL: z.string().url().optional(),
+  // ============================================================================
+  // FONDY USD TEST CONVERSION
+  // These settings are deliberately ignored in production. Catalogue and order
+  // totals remain UAH; only the amount sent to Fondy's test gateway is converted.
+  // ============================================================================
+  FONDY_TEST_USD_ENABLED: z.enum(["true", "false"]).default("false"),
+  FONDY_TEST_UAH_PER_USD: z.coerce.number().positive().default(40),
+  // ============================================================================
   NP_API_KEY: z.string().optional(),
   NP_SENDER_REF: z.string().optional(),
   NP_CONTACT_SENDER_REF: z.string().optional(),
@@ -90,6 +98,11 @@ export const config = Object.freeze({
     merchantId: env.FONDY_MERCHANT_ID,
     secretKey: env.FONDY_SECRET_KEY,
     returnUrl: env.CHECKOUT_RETURN_URL,
+    // ============================================================================
+    // FONDY USD TEST CONVERSION
+    useUsdTestCurrency: env.NODE_ENV !== "production" && env.FONDY_TEST_USD_ENABLED === "true",
+    uahPerUsd: env.FONDY_TEST_UAH_PER_USD,
+    // ============================================================================
   },
   novaPoshta: {
     apiKey: env.NP_API_KEY,

@@ -1,5 +1,9 @@
 import { config } from "../../config/index.js";
 import { fondySignature } from "./fondy-signature.js";
+import {
+  fondyCallbackIssues,
+  fondyPaymentTermsForOrder,
+} from "./fondy-payment-terms.js";
 import { IntegrationError, PaymentError } from "../../domain/errors.js";
 
 const CHECKOUT_URL = "https://pay.fondy.eu/api/checkout/url/";
@@ -20,12 +24,20 @@ export const fondy = {
   async createCheckout(order) {
     ensureConfigured();
 
+    // ============================================================================
+    // FONDY USD TEST CONVERSION
+    const paymentTerms = fondyPaymentTermsForOrder(order);
+    // ============================================================================
+
     const request = {
       order_id: `order-${order.order_id}-${Date.now()}`,
       merchant_id: config.fondy.merchantId,
       order_desc: `Замовлення №${order.order_id}`,
-      amount: String(order.total_price * 100),
-      currency: "UAH",
+      // ============================================================================
+      // FONDY USD TEST CONVERSION
+      amount: String(paymentTerms.amountMinor),
+      currency: paymentTerms.currency,
+      // ============================================================================
       server_callback_url: `${config.server.baseUrl}/api/payments/fondy/callback`,
       response_url: config.fondy.returnUrl || config.server.baseUrl,
     };
@@ -47,7 +59,17 @@ export const fondy = {
     if (r?.response_status !== "success" || !r?.checkout_url) {
       throw new PaymentError("Fondy checkout creation failed", { error: r?.error_message });
     }
-    return { checkoutUrl: r.checkout_url, fondyOrderRef: request.order_id };
+    // ============================================================================
+    // FONDY USD TEST CONVERSION
+    // Persist these exact terms; callbacks and refunds must never recalculate them
+    // using a possibly changed test exchange rate.
+    return {
+      checkoutUrl: r.checkout_url,
+      fondyOrderRef: request.order_id,
+      fondyCurrency: paymentTerms.currency,
+      fondyAmountMinor: paymentTerms.amountMinor,
+    };
+    // ============================================================================
   },
 
   // Verify a server callback. This — not the browser redirect — is the proof of
@@ -61,16 +83,40 @@ export const fondy = {
       approved: valid && body.order_status === "approved",
       fondyOrderRef: body.order_id,
       fondyPaymentId: body.payment_id != null ? String(body.payment_id) : null,
+      // ============================================================================
+      // FONDY USD TEST CONVERSION
+      // Retain the signed provider terms so the controller can compare them with
+      // the exact USD/UAH values stored when checkout was created.
+      merchantId: body.merchant_id,
+      responseStatus: body.response_status,
+      transactionType: body.tran_type,
+      currency: body.currency,
+      amountMinor: body.amount,
+      // ============================================================================
     };
   },
 
+  // ==============================================================================
+  // FONDY USD TEST CONVERSION
+  callbackIssuesForOrder(callback, order) {
+    return fondyCallbackIssues(callback, order, config.fondy.merchantId);
+  },
+  // ==============================================================================
+
   async reverse(order) {
     ensureConfigured();
+    // ============================================================================
+    // FONDY USD TEST CONVERSION
+    const paymentTerms = fondyPaymentTermsForOrder(order);
+    // ============================================================================
     const request = {
       order_id: order.fondy_order_ref,
       merchant_id: config.fondy.merchantId,
-      amount: String(order.total_price * 100),
-      currency: "UAH",
+      // ============================================================================
+      // FONDY USD TEST CONVERSION
+      amount: String(paymentTerms.amountMinor),
+      currency: paymentTerms.currency,
+      // ============================================================================
     };
     request.signature = fondySignature(request, config.fondy.secretKey);
     let json;

@@ -189,8 +189,8 @@
             : '<div class="basket-item__image basket-item__image--empty" aria-hidden="true"></div>') +
           '<div class="basket-item__content">' +
             '<h3>' + escapeHtml(product.title) + '</h3>' +
-            '<p class="basket-item__meta">' + escapeHtml(product.netWeightGrams + " г") + '</p>' +
-            '<p class="basket-item__price">' + escapeHtml(formatUah(price)) + '</p>' +
+            '<p class="basket-item__meta">' + escapeHtml((product.netWeightGrams * item.quantity) + " г") + '</p>' +
+            '<p class="basket-item__price">' + escapeHtml(formatUah(price * item.quantity)) + '</p>' +
             (warning ? '<p class="basket-item__warning">' + escapeHtml(warning) + '</p>' : '') +
             '<div class="basket-item__actions">' +
               '<div class="basket-quantity" aria-label="Кількість">' +

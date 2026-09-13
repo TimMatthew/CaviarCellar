@@ -18,6 +18,13 @@ import { validate } from "../src/http/middleware/validate.js";
 import { deliveryDestinationSchema } from "../src/http/validators/delivery-schema.js";
 import { buildCodOptions } from "../src/integrations/novaPoshta/novaPoshta-client.js";
 import { deliveryRepo } from "../src/reps/delivery-repo.js";
+// ==============================================================================
+// FONDY USD TEST CONVERSION
+import {
+  calculateFondyPaymentTerms,
+  fondyCallbackIssues,
+} from "../src/integrations/fondy/fondy-payment-terms.js";
+// ==============================================================================
 
 test("delivery state machine accepts progress and suppresses unchanged status", () => {
   assert.equal(assertDeliveryTransition("pending", "processing"), true);
@@ -239,3 +246,41 @@ test("failed fulfillment cleanup can remove only a delivery without a TTN", asyn
   assert.match(statement, /ttn IS NULL/);
   assert.deepEqual(values, [14]);
 });
+
+// ==============================================================================
+// FONDY USD TEST CONVERSION
+test("Fondy test payment converts 2599 UAH to 6498 USD cents at 40 UAH/USD", () => {
+  assert.deepEqual(
+    calculateFondyPaymentTerms(2599, {
+      useUsdTestCurrency: true,
+      uahPerUsd: 40,
+    }),
+    { currency: "USD", amountMinor: 6498 }
+  );
+});
+
+test("Fondy payment keeps production/default UAH in kopiykas", () => {
+  assert.deepEqual(calculateFondyPaymentTerms(2599), {
+    currency: "UAH",
+    amountMinor: 259900,
+  });
+});
+
+test("Fondy callback must match the stored mock USD terms", () => {
+  const callback = {
+    merchantId: "1396424",
+    responseStatus: "success",
+    transactionType: "purchase",
+    currency: "USD",
+    amountMinor: "6498",
+    fondyPaymentId: "805243692",
+  };
+  const order = { fondy_currency: "USD", fondy_amount_minor: 6498 };
+
+  assert.deepEqual(fondyCallbackIssues(callback, order, "1396424"), []);
+  assert.deepEqual(
+    fondyCallbackIssues({ ...callback, amountMinor: "6497" }, order, "1396424"),
+    ["amount"]
+  );
+});
+// ==============================================================================
