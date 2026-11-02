@@ -33,7 +33,7 @@ export default defineRailway((ctx) => {
       ADMIN_API_KEY: ctx.shared.ADMIN_API_KEY,
       AUTH_SECRET: ctx.shared.AUTH_SECRET,
 
-      SCHEDULER_ENABLED: "false",
+      SCHEDULER_ENABLED: "true",
       DELIVERY_POLL_CRON: "*/10 * * * *",
       TRACKING_BATCH_SIZE: "50",
       OUTBOX_CRON: "*/1 * * * *",
