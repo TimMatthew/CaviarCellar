@@ -982,12 +982,13 @@ h3 {
     top: 76px;
     left: 0;
     right: 0;
+    z-index: 3;
     display: grid;
     gap: 0;
     max-height: 0;
     overflow: hidden;
     background: var(--color-black);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 0;
     transition: max-height 260ms ease;
   }
 
@@ -1002,6 +1003,7 @@ h3 {
 
   .nav-toggle:checked ~ .main-nav {
     max-height: 420px;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .quality-grid,

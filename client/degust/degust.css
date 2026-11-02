@@ -88,24 +88,27 @@
    ========================================================= */
 .degustation-hero {
   position: relative;
+  /* Keep the 3:1 poster at its complete aspect ratio instead of letting
+     `cover` crop its top or bottom against the hero boundary. */
+  min-height: min(33.333vw, 724px);
   padding-block:
     clamp(64px, 8vw, 116px)
     clamp(44px, 6vw, 76px);
-  border-bottom: 1px solid rgba(200, 164, 93, 0.22);
+  /* border-bottom: 1px solid rgba(200, 164, 93, 0.22); */
 
   /* Left-side black scrim over the photo: solid near the text,
      fading out toward the image. Photo stays pinned right at its
      natural ratio; #080705 fills whatever it doesn't cover. */
   background:
-    linear-gradient(
+    /* linear-gradient(
       90deg,
       rgba(8, 7, 5, 0.96) 0%,
       rgba(8, 7, 5, 0.88) 26%,
       rgba(8, 7, 5, 0.55) 42%,
       rgba(8, 7, 5, 0.18) 58%,
       rgba(8, 7, 5, 0) 75%
-    ),
-    url('../assets/degust/hero-layouts/layout-posterized-long-1.png') center / cover no-repeat;
+    ), */
+    url('../assets/degust/hero-layouts/layout-posterized-long-1-full-2.png') center / min(100%, 2172px) auto no-repeat;
     /* url('../assets/degust/hero-layouts/layout-1-image-2.png') center / cover no-repeat */
     /* #080705; */
 }
@@ -181,7 +184,9 @@
 
 .reservation {
   position: relative;
-  padding-block: clamp(56px, 7vw, 104px);
+  padding-block:
+    clamp(48px, 5.5vw, 84px)
+    clamp(56px, 7vw, 104px);
   background: url('../assets/degust/bg.png');
 }
 

@@ -134,8 +134,10 @@
 
   border-bottom: 1px solid var(--catalog-border);
   aspect-ratio: 1600 / 500;
-  background: url("../assets/catalog/hero-catalog/catalog-gif.gif") center / cover no-repeat; /*linear-gradient(10deg, rgba(0, 0, 0, 0.96), rgba(20, 17, 13, 0.92));*/
-    /* linear-gradient(
+  /* Symmetrical black vignette: darkest at both sides and softly fading
+     toward the unobscured center of the animated catalog image. */
+  background:
+    linear-gradient(
       90deg,
       rgba(8, 7, 5, 0.92) 0%,
       rgba(8, 7, 5, 0.66) 16%,
@@ -144,8 +146,8 @@
       rgba(8, 7, 5, 0.24) 64%,
       rgba(8, 7, 5, 0.66) 84%,
       rgba(8, 7, 5, 0.92) 100%
-    ), */
-    /* url("../assets/backgrounds/pohrib-background-2.png"); */
+    ),
+    url("../assets/catalog/hero-catalog/catalog-gif.gif") center / cover no-repeat;
 }
 
 
