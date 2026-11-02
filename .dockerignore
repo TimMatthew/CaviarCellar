@@ -1,0 +1,40 @@
+# Version-control and local agent metadata
+.git
+.git/**
+.github
+.codex
+.agents
+
+# Dependencies are installed inside the Linux build image. Never copy Windows
+# node_modules into it.
+node_modules
+**/node_modules
+
+# Secrets and machine-local configuration
+.env
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs, coverage, and local databases
+*.log
+**/*.log
+npm-debug.log*
+coverage
+**/coverage
+*.db
+**/*.db
+*.sqlite
+*.sqlite3
+
+# Development-only material
+server/test
+server/**/*.test.js
+db-scripts
+client/db-scripts
+docs
+tree.txt
+assests.zip
+
+# Design sources and the unused 135 MB source video are not runtime assets.
+**/*.psd

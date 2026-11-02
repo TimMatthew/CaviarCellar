@@ -1,8 +1,19 @@
-# Dirs
-assets
-db-scripts
+# pre-dev db test and config scripts
+/db-scripts/
 
-# Files
-assests.zip
+# environment
 .env
+**/.env
+
+# dependencies
+node_modules/
+**/node_modules/
+
+# Local files
+assests.zip
 tree.txt
+*.db
+
+# Design sources that are not used by the website
+/client/assets/**/*.psd
+

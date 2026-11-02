@@ -46,7 +46,7 @@ export function createApp() {
   app.use(express.static(webRoot));
 
   app.get("/", (req, res) => {
-    res.sendFile(path.join(webRoot, "main.html"));
+    res.redirect(302, "/hero/hero.html");
   });
 
   app.use(errorHandler);
