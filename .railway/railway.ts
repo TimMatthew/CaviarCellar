@@ -16,7 +16,7 @@ export default defineRailway((ctx) => {
     }),
     healthcheck: "/health",
     healthcheckTimeout: 300,
-    preDeploy: "npm run db:migrate",
+    preDeploy: "npm run db:migrate && npm run db:seed:catalog",
     replicas: 1,
     env: {
       NODE_ENV: "production",

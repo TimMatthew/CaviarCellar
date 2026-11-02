@@ -44,7 +44,8 @@ VALUES
      350, 1699, 2, 'iceland_salmon_aurora.png'),
     (12, 'Maple Coast Trout Roe',    'Канада',   'Форель',
      'Свіжа ікра форелі з насиченим помаранчевим кольором, легкою солоністю та делікатним післясмаком.',
-     400, 1399, 0, 'maple_coast-trout-roe.png');
+     400, 1399, 0, 'maple_coast-trout-roe.png')
+ON CONFLICT (caviar_id) DO NOTHING;
 
 -- Advance the identity sequence so the next auto id is MAX+1 (= 13).
 SELECT setval(
