@@ -1128,6 +1128,20 @@ h3 {
     letter-spacing: 0.12em;
   }
 
+  .about-assortment-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+  }
+
+  .about-assortment-header .button {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
+    white-space: normal;
+    text-align: center;
+  }
+
   .assortment-list {
     min-height: auto;
     grid-template-rows: none;
@@ -1165,6 +1179,10 @@ h3 {
 
   .quality-image-wrap::before {
     inset: 0.75rem -0.75rem -0.75rem 0.75rem;
+  }
+
+  .booking-logo {
+    display: none;
   }
 
   .footer-grid {
