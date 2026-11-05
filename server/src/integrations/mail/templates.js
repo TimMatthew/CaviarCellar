@@ -1,5 +1,17 @@
+import { DEGUSTATION_TIME_ZONE } from "../../domain/degustationSchedule.js";
+
 // Notification message bodies. Kept separate from the transport so wording
 // changes don't touch the mailer. Amounts are in UAH (order.total_price).
+
+const degustationDateFormatter = new Intl.DateTimeFormat("uk-UA", {
+  timeZone: DEGUSTATION_TIME_ZONE,
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
 
 export const templates = {
   paymentConfirmed(order) {
@@ -44,7 +56,7 @@ export const templates = {
   degustationBooked(booking) {
     return {
       subject: `Дегустацію №${booking.id} заброньовано`,
-      text: `Бронювання на ${new Date(booking.date_t).toLocaleString("uk-UA")} для ${booking.guests_amount} гостей підтверджено.`,
+      text: `Бронювання на ${degustationDateFormatter.format(new Date(booking.date_t))} для ${booking.guests_amount} гостей підтверджено.`,
     };
   },
 };

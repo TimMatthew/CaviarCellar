@@ -18,6 +18,7 @@ import { validate } from "../src/http/middleware/validate.js";
 import { deliveryDestinationSchema } from "../src/http/validators/delivery-schema.js";
 import { buildCodOptions } from "../src/integrations/novaPoshta/novaPoshta-client.js";
 import { deliveryRepo } from "../src/reps/delivery-repo.js";
+import { templates } from "../src/integrations/mail/templates.js";
 // ==============================================================================
 // FONDY USD TEST CONVERSION
 import {
@@ -144,6 +145,24 @@ test("degustation schedule uses 20-minute Kyiv slots from 10:00 through 20:40", 
   assert.equal(isDegustationSlot("2026-08-10T17:40:00.000Z"), true);
   assert.equal(isDegustationSlot("2026-08-10T07:10:00.000Z"), false);
   assert.equal(isDegustationSlot("2026-08-10T18:00:00.000Z"), false);
+});
+
+test("degustation confirmation email formats appointments in Europe/Kyiv", () => {
+  const summer = templates.degustationBooked({
+    id: 1,
+    date_t: "2026-08-10T07:20:00.000Z",
+    guests_amount: 2,
+  });
+  const winter = templates.degustationBooked({
+    id: 2,
+    date_t: "2026-12-10T08:20:00.000Z",
+    guests_amount: 2,
+  });
+
+  assert.match(summer.text, /10:20/);
+  assert.doesNotMatch(summer.text, /07:20/);
+  assert.match(winter.text, /10:20/);
+  assert.doesNotMatch(winter.text, /08:20/);
 });
 
 test("administrator registration enforces username and password rules", () => {
